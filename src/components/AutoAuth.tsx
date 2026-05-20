@@ -14,8 +14,8 @@ export default function AutoAuth() {
   useEffect(() => {
     async function run() {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) return  // already authenticated
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) return  // already authenticated
 
       const { error } = await supabase.auth.signInAnonymously()
       if (error) {

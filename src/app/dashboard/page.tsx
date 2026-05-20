@@ -15,7 +15,8 @@ export default async function DashboardPage({
   const month = Math.min(12, Math.max(1, Number(searchParams.month) || now.month))
   const year  = Math.max(2000, Math.min(2100, Number(searchParams.year)  || now.year))
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { session } } = await supabase.auth.getSession()
+  const user = session?.user
   if (!user) return (
     <div className="flex flex-col items-center justify-center py-32 gap-4 text-center animate-fade-in">
       <p className="text-muted text-sm">Setting up your tracker...</p>

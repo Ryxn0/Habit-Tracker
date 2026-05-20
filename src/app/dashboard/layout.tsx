@@ -5,7 +5,8 @@ import AutoAuth from '@/components/AutoAuth'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { session } } = await supabase.auth.getSession()
+  const user = session?.user
 
   return (
     <div className="min-h-screen flex flex-col">
