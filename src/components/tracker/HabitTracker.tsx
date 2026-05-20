@@ -293,16 +293,17 @@ function TrackerGrid({
                 </Td>
               ))}
               {/* Progress column labels (rotated) */}
-              <div style={{ flex: 1, minWidth: PROG_W, display: 'flex', alignItems: 'flex-end', padding: '4px 8px' }}>
-                {(['CMPL', 'LEFT', '%'] as const).map(lbl => (
-                  <div key={lbl} style={{ width: 52, display: 'flex', justifyContent: 'center' }}>
-                    <span style={{ fontSize: 8, color: '#374151', letterSpacing: '0.1em', writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+              <div style={{ flex: 1, minWidth: PROG_W, display: 'flex', alignItems: 'flex-end', padding: '4px 12px', gap: 10 }}>
+                {(['CMPL', 'GOAL', 'LEFT'] as const).map((lbl, i) => (
+                  <div key={lbl} style={{ width: 46, display: 'flex', justifyContent: 'center' }}>
+                    <span style={{ fontSize: 8, letterSpacing: '0.1em', writingMode: 'vertical-rl', transform: 'rotate(180deg)',
+                      color: i === 0 ? '#22d3ee' : i === 2 ? '#f472b6' : '#374151' }}>
                       {lbl}
                     </span>
                   </div>
                 ))}
                 <div style={{ flex: 1 }} />
-                <div style={{ width: 60, display: 'flex', justifyContent: 'center' }}>
+                <div style={{ width: 50, display: 'flex', justifyContent: 'center' }}>
                   <span style={{ fontSize: 8, color: '#22d3ee', letterSpacing: '0.1em', writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
                     STREAK
                   </span>
@@ -418,26 +419,17 @@ function TrackerGrid({
                   }
                 })}
 
-                {/* Progress sidebar */}
-                <div style={{ flex: 1, minWidth: PROG_W, display: 'flex', alignItems: 'center', padding: '0 8px' }}>
-                  <div style={{ width: 52, textAlign: 'center' }}>
-                    <span style={{ fontSize: 12, color: '#D1D5DB', fontFamily: 'monospace' }}>{done}</span>
-                  </div>
-                  <div style={{ width: 52, textAlign: 'center' }}>
-                    <span style={{ fontSize: 12, color: '#6B7280', fontFamily: 'monospace' }}>{Math.max(0, habit.goal - done)}</span>
-                  </div>
-                  <div style={{ width: 44, textAlign: 'right', paddingRight: 6 }}>
-                    <span style={{ fontSize: 11, color: '#9CA3AF', fontFamily: 'monospace' }}>{rate}%</span>
-                  </div>
-                  <div style={{ flex: 1, padding: '0 6px', maxWidth: 110 }}>
-                    <div style={{ height: 6, borderRadius: 3, background: '#1E2D4E', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${Math.min(rate, 100)}%`, background: '#22d3ee', borderRadius: 3, transition: 'width 0.3s' }} />
-                    </div>
-                  </div>
-                  <div style={{ width: 60, textAlign: 'center' }}>
-                    <span style={{ fontSize: 12, fontFamily: 'monospace', color: s > 0 ? '#f472b6' : '#1E2D4E' }}>
+                {/* Progress sidebar — rings */}
+                <div style={{ flex: 1, minWidth: PROG_W, display: 'flex', alignItems: 'center', padding: '6px 12px', gap: 10 }}>
+                  <Ring value={done}                      max={habit.goal} color="#22d3ee" label="CMPL" />
+                  <Ring value={habit.goal}                max={habit.goal} color="#374151" label="GOAL" static />
+                  <Ring value={Math.max(0,habit.goal-done)} max={habit.goal} color="#f472b6" label="LEFT" />
+                  <div style={{ flex: 1 }} />
+                  <div style={{ width: 50, textAlign: 'center' }}>
+                    <div style={{ fontSize: 13, fontFamily: 'monospace', fontWeight: 600, color: s > 0 ? '#f472b6' : '#1E2D4E' }}>
                       {s > 0 ? `${s}d` : '—'}
-                    </span>
+                    </div>
+                    <div style={{ fontSize: 8, color: '#374151', letterSpacing: '0.1em', marginTop: 2 }}>STREAK</div>
                   </div>
                 </div>
               </div>
@@ -589,6 +581,61 @@ function TopPanel({ title, habits, countDone }: {
           </li>
         ))}
       </ol>
+    </div>
+  )
+}
+
+// ── Ring — SVG circular progress indicator ────────────────────────────
+
+function Ring({ value, max, color, label, static: isStatic = false, size = 46 }: {
+  value:   number
+  max:     number
+  color:   string
+  label:   string
+  static?: boolean
+  size?:   number
+}) {
+  const sw   = 4
+  const r    = (size - sw * 2) / 2
+  const circ = 2 * Math.PI * r
+  const pct  = max > 0 ? Math.min(value / max, 1) : 0
+  const cx   = size / 2
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, flexShrink: 0 }}>
+      <div style={{ position: 'relative', width: size, height: size }}>
+        <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', display: 'block' }}>
+          {/* Track */}
+          <circle cx={cx} cy={cx} r={r} fill="none" stroke="#1E2D4E" strokeWidth={sw} />
+          {/* Arc */}
+          {!isStatic && pct > 0 && (
+            <circle
+              cx={cx} cy={cx} r={r}
+              fill="none"
+              stroke={color}
+              strokeWidth={sw}
+              strokeDasharray={circ}
+              strokeDashoffset={circ * (1 - pct)}
+              strokeLinecap="round"
+              style={{ transition: 'stroke-dashoffset 0.4s ease' }}
+            />
+          )}
+          {/* Static ring: just a dim full circle */}
+          {isStatic && (
+            <circle cx={cx} cy={cx} r={r} fill="none" stroke="#374151" strokeWidth={sw} />
+          )}
+        </svg>
+        {/* Centre value */}
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <span style={{ fontSize: 11, color: isStatic ? '#6B7280' : color, fontFamily: 'monospace', fontWeight: 600 }}>
+            {value}
+          </span>
+        </div>
+      </div>
+      <span style={{ fontSize: 8, color: '#4B5563', letterSpacing: '0.1em', fontWeight: 700 }}>{label}</span>
     </div>
   )
 }
