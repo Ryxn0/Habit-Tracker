@@ -9,10 +9,7 @@ export default function HomePage() {
           Quiet Progress
         </span>
         <div className="flex items-center gap-4">
-          <Link href="/auth/login" className="btn-ghost text-sm py-2 px-4">
-            Sign in
-          </Link>
-          <Link href="/auth/signup" className="btn-primary text-sm py-2 px-4">
+          <Link href="/dashboard" className="btn-primary text-sm py-2 px-4">
             Get started
           </Link>
         </div>
@@ -36,11 +33,8 @@ export default function HomePage() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4">
-          <Link href="/auth/signup" className="btn-primary text-base px-8 py-4">
+          <Link href="/dashboard" className="btn-primary text-base px-8 py-4">
             Start tracking for free →
-          </Link>
-          <Link href="/auth/login" className="btn-ghost text-base px-8 py-4">
-            I already have an account
           </Link>
         </div>
       </section>

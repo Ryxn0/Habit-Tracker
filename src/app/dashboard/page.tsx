@@ -16,7 +16,11 @@ export default async function DashboardPage({
   const year  = Math.max(2000, Math.min(2100, Number(searchParams.year)  || now.year))
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
+  if (!user) return (
+    <div className="flex items-center justify-center py-32 text-muted text-sm">
+      Loading your tracker...
+    </div>
+  )
 
   // Fetch habits for this month
   const { data: habits } = await supabase

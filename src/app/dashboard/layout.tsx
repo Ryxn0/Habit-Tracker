@@ -1,13 +1,11 @@
-import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import LogoutButton from '@/components/ui/LogoutButton'
+import AutoAuth from '@/components/AutoAuth'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) redirect('/auth/login')
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -19,11 +17,18 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </Link>
 
           <div className="flex items-center gap-3">
-            <span className="text-subtle text-sm truncate max-w-[160px]">{user.email}</span>
-            <LogoutButton />
+            {user?.email && (
+              <>
+                <span className="text-subtle text-sm truncate max-w-[160px]">{user.email}</span>
+                <LogoutButton />
+              </>
+            )}
           </div>
         </div>
       </nav>
+
+      {/* Auto sign-in anonymous users */}
+      <AutoAuth />
 
       {/* Page content */}
       <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-10">
