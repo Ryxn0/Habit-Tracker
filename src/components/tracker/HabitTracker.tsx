@@ -131,9 +131,9 @@ export default function HabitTracker({
     // Remove associated completions from local state
     setCompletionSet(prev => {
       const next = new Set(prev)
-      for (const key of next) {
+      next.forEach(key => {
         if (key.startsWith(`${habit.id}__`)) next.delete(key)
-      }
+      })
       return next
     })
   }
