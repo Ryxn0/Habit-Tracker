@@ -4,10 +4,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen flex flex-col">
       {/* Top nav */}
-      <nav className="sticky top-0 z-50 bg-bg/80 backdrop-blur border-b border-border">
-        <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-4">
-          <Link href="/dashboard" className="font-display text-xl text-white hover:text-accent transition-colors">
-            Quiet Progress
+      <nav className="sticky top-0 z-50 backdrop-blur border-b" style={{ background: 'rgba(9,16,30,0.9)', borderColor: '#1E2D4E' }}>
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
+          <Link href="/dashboard" style={{ fontFamily: 'monospace', fontSize: 14, fontWeight: 700, letterSpacing: '0.15em', color: '#fff' }}
+            className="hover:text-[#22d3ee] transition-colors"
+          >
+            QUIET PROGRESS
           </Link>
         </div>
       </nav>

@@ -15,9 +15,9 @@
   color: white;
 }
 
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: #0E0E16; }
-::-webkit-scrollbar-thumb { background: #2A2A3D; border-radius: 2px; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #09101E; }
+::-webkit-scrollbar-thumb { background: #1E2D4E; border-radius: 2px; }
 
 @layer components {
   .btn-primary {
