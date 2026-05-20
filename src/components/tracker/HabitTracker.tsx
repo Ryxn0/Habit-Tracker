@@ -115,8 +115,8 @@ export default function HabitTracker({
       const { data: u, error } = await sb.from('habits')
         .update({ name, goal }).eq('id', modal.habit.id).eq('user_id', userId)
         .select().single()
-      if (error || !u) return
-      const fn = (arr: Habit[]) => arr.map(h => h.id === u.id ? u : h)
+      if (error) throw new Error(error.message)
+      const fn = (arr: Habit[]) => arr.map(h => h.id === u!.id ? u! : h)
       setDailyHabits(fn); setWeeklyHabits(fn)
     } else {
       const { data: last } = await sb.from('habits').select('sort_order')
@@ -127,8 +127,8 @@ export default function HabitTracker({
       const { data: h, error } = await sb.from('habits')
         .insert({ name, type, goal: finalGoal, month, year, user_id: userId, sort_order })
         .select().single()
-      if (error || !h) return
-      type === 'daily' ? setDailyHabits(p => [...p, h]) : setWeeklyHabits(p => [...p, h])
+      if (error) throw new Error(error.message)
+      type === 'daily' ? setDailyHabits(p => [...p, h!]) : setWeeklyHabits(p => [...p, h!])
     }
     close()
   }

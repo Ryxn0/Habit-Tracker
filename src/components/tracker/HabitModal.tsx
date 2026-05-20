@@ -18,17 +18,24 @@ export default function HabitModal({ habit, defaultType, month, year, onSave, on
   const isEditing = !!habit
   const daysInMonth = getDaysInMonth(new Date(year, month - 1))
 
-  const [name, setName]   = useState(habit?.name ?? '')
-  const [type, setType]   = useState<HabitType>(habit?.type ?? defaultType)
-  const [goal, setGoal]   = useState(habit?.goal ?? 4)
+  const [name,   setName]   = useState(habit?.name ?? '')
+  const [type,   setType]   = useState<HabitType>(habit?.type ?? defaultType)
+  const [goal,   setGoal]   = useState(habit?.goal ?? 4)
   const [saving, setSaving] = useState(false)
+  const [error,  setError]  = useState<string | null>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!name.trim()) return
     setSaving(true)
-    // For daily habits the goal is always the days in the month
-    await onSave(name.trim(), type, type === 'daily' ? daysInMonth : goal)
+    setError(null)
+    try {
+      await onSave(name.trim(), type, type === 'daily' ? daysInMonth : goal)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+      setSaving(false)
+      return
+    }
     setSaving(false)
   }
 
@@ -96,6 +103,13 @@ export default function HabitModal({ habit, defaultType, month, year, onSave, on
                 value={goal}
                 onChange={e => setGoal(Math.max(1, Math.min(daysInMonth, Number(e.target.value))))}
               />
+            </div>
+          )}
+
+          {/* Error */}
+          {error && (
+            <div className="text-sm px-3 py-2 rounded-lg" style={{ background: '#f4725620', border: '1px solid #f47256', color: '#fca5a5' }}>
+              {error}
             </div>
           )}
 
