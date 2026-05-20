@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: 'DM Serif Display';
+  --font-body: 'DM Sans';
+  --font-mono: 'DM Mono';
+}
+
+* { box-sizing: border-box; }
+
+::selection {
+  background: #E94560;
+  color: white;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #0E0E16; }
+::-webkit-scrollbar-thumb { background: #2A2A3D; border-radius: 2px; }
+
+@layer components {
+  .btn-primary {
+    @apply bg-accent hover:bg-accent/90 text-white font-semibold px-6 py-3 rounded-lg
+           transition-all duration-200 active:scale-95 cursor-pointer;
+  }
+
+  .btn-ghost {
+    @apply border border-border hover:border-subtle text-subtle hover:text-white px-6 py-3
+           rounded-lg transition-all duration-200 active:scale-95 cursor-pointer;
+  }
+
+  .card {
+    @apply bg-card border border-border rounded-xl p-6;
+  }
+
+  .input {
+    @apply bg-surface border border-border rounded-lg px-4 py-3 text-white placeholder:text-muted
+           focus:outline-none focus:border-accent transition-colors w-full;
+  }
+
+  .habit-tick {
+    @apply w-8 h-8 rounded-md border border-border flex items-center justify-center
+           cursor-pointer transition-all duration-200 hover:border-done/50 hover:bg-done/10
+           select-none text-sm font-mono;
+  }
+
+  .habit-tick.done {
+    @apply bg-done/20 border-done text-done animate-tick;
+  }
+
+  .habit-tick.today {
+    @apply border-accent/50;
+  }
+
+  .habit-tick.future {
+    @apply opacity-30 cursor-not-allowed pointer-events-none;
+  }
+}
