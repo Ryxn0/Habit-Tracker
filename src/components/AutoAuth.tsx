@@ -18,7 +18,11 @@ export default function AutoAuth() {
       if (user) return  // already authenticated
 
       const { error } = await supabase.auth.signInAnonymously()
-      if (error) return
+      if (error) {
+        // Anonymous auth not enabled — fall back to the login page
+        router.push('/auth/login')
+        return
+      }
 
       // Seed default habits for the current month
       const now = new Date()

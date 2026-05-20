@@ -9,6 +9,9 @@ export default function HomePage() {
           Quiet Progress
         </span>
         <div className="flex items-center gap-4">
+          <Link href="/auth/login" className="btn-ghost text-sm py-2 px-4">
+            Sign in
+          </Link>
           <Link href="/dashboard" className="btn-primary text-sm py-2 px-4">
             Get started
           </Link>

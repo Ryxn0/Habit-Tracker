@@ -17,8 +17,12 @@ export default async function DashboardPage({
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return (
-    <div className="flex items-center justify-center py-32 text-muted text-sm">
-      Loading your tracker...
+    <div className="flex flex-col items-center justify-center py-32 gap-4 text-center animate-fade-in">
+      <p className="text-muted text-sm">Setting up your tracker...</p>
+      <p className="text-muted text-xs">
+        Taking too long?{' '}
+        <a href="/auth/login" className="text-accent hover:underline">Sign in instead</a>
+      </p>
     </div>
   )
 
