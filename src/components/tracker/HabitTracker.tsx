@@ -6,6 +6,7 @@ import type { Habit, Completion, HabitType } from '@/types'
 import { getDaysArray, toISODate, todayISO, dayAbbr, pct, cn } from '@/lib/utils'
 import ProgressBar from '@/components/ui/ProgressBar'
 import HabitModal from './HabitModal'
+import { createClient } from '@/lib/supabase/client'
 
 interface Props {
   dailyHabits:  Habit[]
@@ -13,6 +14,7 @@ interface Props {
   completions:  Completion[]
   month: number
   year:  number
+  userId: string
 }
 
 interface ModalState {
@@ -27,6 +29,7 @@ export default function HabitTracker({
   completions,
   month,
   year,
+  userId,
 }: Props) {
   const [dailyHabits,  setDailyHabits]  = useState<Habit[]>(initialDaily)
   const [weeklyHabits, setWeeklyHabits] = useState<Habit[]>(initialWeekly)
@@ -53,20 +56,24 @@ export default function HabitTracker({
   const toggle = useCallback(async (habitId: string, date: string) => {
     if (date > today) return
     const key = `${habitId}__${date}`
+    const isDone = completionSet.has(key)
     setLoading(key)
+    // Optimistic update
     setCompletionSet(prev => {
       const next = new Set(prev)
       if (next.has(key)) next.delete(key)
       else next.add(key)
       return next
     })
-    await fetch('/api/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ habit_id: habitId, date }),
-    })
+    const supabase = createClient()
+    if (isDone) {
+      await supabase.from('completions').delete()
+        .eq('habit_id', habitId).eq('date', date).eq('user_id', userId)
+    } else {
+      await supabase.from('completions').insert({ habit_id: habitId, user_id: userId, date })
+    }
     setLoading(null)
-  }, [today])
+  }, [today, userId, completionSet])
 
   const getCompletedCount = (habitId: string) =>
     days.filter(d => isCompleted(habitId, toISODate(year, month, d))).length
@@ -93,28 +100,39 @@ export default function HabitTracker({
   // ── CRUD handlers ───────────────────────────────────────────────
 
   async function handleSave(name: string, type: HabitType, goal: number) {
+    const supabase = createClient()
     if (modal.habit) {
       // Edit existing
-      const res = await fetch(`/api/habits/${modal.habit.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, goal }),
-      })
-      if (!res.ok) return
-      const updated: Habit = await res.json()
+      const { data: updated, error } = await supabase
+        .from('habits')
+        .update({ name, goal })
+        .eq('id', modal.habit.id)
+        .eq('user_id', userId)
+        .select()
+        .single()
+      if (error || !updated) return
       const patch = (arr: Habit[]) => arr.map(h => h.id === updated.id ? updated : h)
       setDailyHabits(patch)
       setWeeklyHabits(patch)
     } else {
-      // Add new
+      // Add new — get next sort_order first
+      const { data: last } = await supabase
+        .from('habits')
+        .select('sort_order')
+        .eq('user_id', userId)
+        .eq('month', month)
+        .eq('year', year)
+        .eq('type', type)
+        .order('sort_order', { ascending: false })
+        .limit(1)
+      const sort_order = (last?.[0]?.sort_order ?? -1) + 1
       const finalGoal = type === 'daily' ? daysInMonth : goal
-      const res = await fetch('/api/habits', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, type, goal: finalGoal, month, year }),
-      })
-      if (!res.ok) return
-      const habit: Habit = await res.json()
+      const { data: habit, error } = await supabase
+        .from('habits')
+        .insert({ name, type, goal: finalGoal, month, year, user_id: userId, sort_order })
+        .select()
+        .single()
+      if (error || !habit) return
       if (type === 'daily') setDailyHabits(prev => [...prev, habit])
       else                  setWeeklyHabits(prev => [...prev, habit])
     }
@@ -123,8 +141,13 @@ export default function HabitTracker({
 
   async function handleDelete(habit: Habit) {
     if (!window.confirm(`Delete "${habit.name}"? This cannot be undone.`)) return
-    const res = await fetch(`/api/habits/${habit.id}`, { method: 'DELETE' })
-    if (!res.ok) return
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('habits')
+      .delete()
+      .eq('id', habit.id)
+      .eq('user_id', userId)
+    if (error) return
     const remove = (arr: Habit[]) => arr.filter(h => h.id !== habit.id)
     if (habit.type === 'daily') setDailyHabits(remove)
     else                        setWeeklyHabits(remove)

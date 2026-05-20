@@ -1,13 +1,6 @@
-import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import LogoutButton from '@/components/ui/LogoutButton'
-import AutoAuth from '@/components/AutoAuth'
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const supabase = createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  const user = session?.user
-
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Top nav */}
@@ -16,20 +9,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <Link href="/dashboard" className="font-display text-xl text-white hover:text-accent transition-colors">
             Quiet Progress
           </Link>
-
-          <div className="flex items-center gap-3">
-            {user?.email && (
-              <>
-                <span className="text-subtle text-sm truncate max-w-[160px]">{user.email}</span>
-                <LogoutButton />
-              </>
-            )}
-          </div>
         </div>
       </nav>
-
-      {/* Auto sign-in anonymous users */}
-      <AutoAuth />
 
       {/* Page content */}
       <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-10">
