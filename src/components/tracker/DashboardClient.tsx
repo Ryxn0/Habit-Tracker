@@ -106,32 +106,30 @@ export default function DashboardClient({ month, year }: Props) {
   return (
     <div className="space-y-10 animate-fade-in">
       {/* Page header */}
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16 }}>
+      <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 style={{ fontFamily: 'monospace', fontSize: 22, fontWeight: 700, letterSpacing: '0.15em', color: '#fff', margin: 0 }}>
-            HABIT TRACKER
-          </h1>
-          <div style={{ fontSize: 13, color: '#22d3ee', marginTop: 6, letterSpacing: '0.12em', fontFamily: 'monospace' }}>
-            — {monthName(month).toUpperCase()} {year} —
-          </div>
+          <h1 className="font-display text-3xl text-white leading-none">Habit Tracker</h1>
+          <p className="text-sm font-mono mt-1.5" style={{ color: '#22d3ee', letterSpacing: '0.08em' }}>
+            {monthName(month)} {year}
+          </p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+        <div className="flex items-center gap-2 flex-shrink-0">
           <Link
             href={`/dashboard?month=${prev.month}&year=${prev.year}`}
-            style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #1E2D4E', borderRadius: 6, color: '#6B7280', fontSize: 14, transition: 'all 0.15s' }}
-            className="hover:border-[#22d3ee] hover:text-white"
+            className="w-9 h-9 flex items-center justify-center border border-border rounded-lg text-muted text-sm hover:border-accent/50 hover:text-white transition-all duration-200"
           >←</Link>
           {!isCurrentMonth && (
-            <Link href="/dashboard" style={{ fontSize: 11, color: '#22d3ee', fontFamily: 'monospace', letterSpacing: '0.1em' }}
-              className="hover:opacity-70 transition-opacity"
+            <Link
+              href="/dashboard"
+              className="text-xs font-mono hover:opacity-70 transition-opacity px-2"
+              style={{ color: '#22d3ee', letterSpacing: '0.1em' }}
             >
               TODAY
             </Link>
           )}
           <Link
             href={`/dashboard?month=${next.month}&year=${next.year}`}
-            style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #1E2D4E', borderRadius: 6, color: '#6B7280', fontSize: 14, transition: 'all 0.15s' }}
-            className="hover:border-[#22d3ee] hover:text-white"
+            className="w-9 h-9 flex items-center justify-center border border-border rounded-lg text-muted text-sm hover:border-accent/50 hover:text-white transition-all duration-200"
           >→</Link>
         </div>
       </div>

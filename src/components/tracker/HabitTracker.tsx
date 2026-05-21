@@ -1,36 +1,16 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { getDaysInMonth } from 'date-fns'
 import type { Habit, Completion, HabitType } from '@/types'
-import { toISODate, todayISO, dayAbbr, pct } from '@/lib/utils'
+import { toISODate, todayISO, pct } from '@/lib/utils'
 import HabitModal from './HabitModal'
 import { createClient } from '@/lib/supabase/client'
 
-// ── Week colour palette (rose · violet · cyan · amber · emerald) ─────
-const WC = ['#f472b6', '#a78bfa', '#22d3ee', '#f59e0b', '#34d399']
-
-// ── Layout constants ─────────────────────────────────────────────────
-const CELL   = 30   // day-tick cell width & height (px)
-const GAP    = 4    // gap between cells (px)
-const NAME_W = 164  // habit name column width (px)
-const GOAL_W = 46   // goal column width (px)
-const PROG_W = 300  // progress sidebar min-width (px)
-const BD     = '1px solid #1E2D4E'  // shared border style
-
-/** Returns day numbers [start..end] for a zero-based week index */
-function wkDays(wi: number, maxDay: number): number[] {
-  const start = wi * 7 + 1
-  const end   = Math.min(wi * 7 + 7, maxDay)
-  if (start > maxDay) return []
-  return Array.from({ length: end - start + 1 }, (_, i) => start + i)
-}
-
-/** Width of one week column in the table */
-function wkW(wi: number, days: number[], type: HabitType): number {
-  return type === 'daily' ? days.length * (CELL + GAP) + 10 : 70
-}
+const ACCENT = '#E94560'
+const CYAN   = '#22d3ee'
+const PINK   = '#f472b6'
 
 // ── Props / state types ───────────────────────────────────────────────
 interface Props {
@@ -58,7 +38,6 @@ export default function HabitTracker({
 
   const today   = todayISO()
   const numDays = getDaysInMonth(new Date(year, month - 1))
-  const weeks   = [0, 1, 2, 3, 4].map(i => wkDays(i, numDays))
 
   // ── Completion helpers ────────────────────────────────────────────
   const isCompleted = (habitId: string, date: string) =>
@@ -93,9 +72,9 @@ export default function HabitTracker({
   }
 
   const getStreak = (habitId: string): number => {
-    const lastDay   = toISODate(year, month, numDays)
-    const endDate   = today > lastDay ? lastDay : today
-    const endDay    = parseInt(endDate.split('-')[2])
+    const lastDay = toISODate(year, month, numDays)
+    const endDate = today > lastDay ? lastDay : today
+    const endDay  = parseInt(endDate.split('-')[2])
     let s = 0
     for (let d = endDay; d >= 1; d--) {
       if (isCompleted(habitId, toISODate(year, month, d))) s++
@@ -147,37 +126,16 @@ export default function HabitTracker({
     })
   }
 
-  // Top lists sorted by completion %
-  const topDaily  = [...dailyHabits]
-    .sort((a, b) => pct(countDone(b.id), b.goal) - pct(countDone(a.id), a.goal))
-    .slice(0, 10)
-  const topWeekly = [...weeklyHabits]
-    .sort((a, b) => pct(countDone(b.id), b.goal) - pct(countDone(a.id), a.goal))
-    .slice(0, 3)
-
-  const shared = { weeks, month, year, today, isCompleted, countDone, getStreak, toggle, loading }
+  const shared = {
+    month, year, today, numDays,
+    isCompleted, countDone, getStreak, toggle, loading,
+    onEdit: openEdit, onDelete: handleDelete,
+  }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
-
-      <TrackerGrid
-        title="DAILY HABITS" type="daily" habits={dailyHabits}
-        {...shared}
-        onAdd={() => openAdd('daily')} onEdit={openEdit} onDelete={handleDelete}
-      />
-
-      <TrackerGrid
-        title="WEEKLY HABITS" type="weekly" habits={weeklyHabits}
-        {...shared}
-        onAdd={() => openAdd('weekly')} onEdit={openEdit} onDelete={handleDelete}
-      />
-
-      {(topDaily.length > 0 || topWeekly.length > 0) && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-          {topDaily.length  > 0 && <TopPanel title="TOP 10 DAILY HABITS"  habits={topDaily}  countDone={countDone} />}
-          {topWeekly.length > 0 && <TopPanel title="TOP 3 WEEKLY HABITS"  habits={topWeekly} countDone={countDone} />}
-        </div>
-      )}
+    <div className="space-y-14">
+      <HabitSection title="Daily Habits"  type="daily"  habits={dailyHabits}  onAdd={() => openAdd('daily')}  {...shared} />
+      <HabitSection title="Weekly Habits" type="weekly" habits={weeklyHabits} onAdd={() => openAdd('weekly')} {...shared} />
 
       {modal.open && (
         <HabitModal
@@ -190,16 +148,16 @@ export default function HabitTracker({
   )
 }
 
-// ── TrackerGrid ───────────────────────────────────────────────────────
+// ── HabitSection ──────────────────────────────────────────────────────
 
-interface GridProps {
+interface SectionProps {
   title:   string
   type:    HabitType
   habits:  Habit[]
-  weeks:   number[][]
   month:   number
   year:    number
   today:   string
+  numDays: number
   isCompleted: (id: string, date: string) => boolean
   countDone:   (id: string) => number
   getStreak:   (id: string) => number
@@ -210,450 +168,205 @@ interface GridProps {
   onDelete: (h: Habit) => void
 }
 
-function TrackerGrid({
-  title, type, habits, weeks, month, year, today,
-  isCompleted, countDone, getStreak, toggle, loading,
-  onAdd, onEdit, onDelete,
-}: GridProps) {
-  // First day of each week used as the anchor date for weekly habits
-  const anchor = weeks.map(w => w[0] ?? 0)
-
-  const colW = (wi: number) => wkW(wi, weeks[wi], type)
-
-  const totalW = NAME_W + GOAL_W +
-    weeks.reduce((s, days, wi) => s + (days.length ? colW(wi) : 0), 0) +
-    PROG_W
+function HabitSection({ title, type, habits, onAdd, countDone, ...rest }: SectionProps) {
+  const avgRate = habits.length > 0
+    ? Math.round(habits.reduce((s, h) => s + pct(countDone(h.id), h.goal), 0) / habits.length)
+    : 0
 
   return (
-    <div>
+    <section>
       {/* Section header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', color: '#fff', fontFamily: 'monospace' }}>
-          {title}
-        </span>
-        <div style={{ flex: 1, height: 1, background: '#1E2D4E' }} />
+      <div className="flex items-baseline gap-3 mb-5">
+        <h2 className="font-display text-2xl text-white">{title}</h2>
+        {habits.length > 0 && (
+          <span className="text-muted text-xs font-mono">
+            {habits.length} habit{habits.length !== 1 ? 's' : ''} · {avgRate}% avg
+          </span>
+        )}
+        <div className="flex-1 h-px bg-border mx-1" style={{ alignSelf: 'center' }} />
         <button
           onClick={onAdd}
-          style={{ fontSize: 11, color: '#22d3ee', fontFamily: 'monospace', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
+          className="text-xs font-mono text-accent hover:text-white border border-border hover:border-accent/40 px-3 py-1.5 rounded-lg transition-all duration-200"
         >
           + Add
         </button>
       </div>
 
-      {/* Scrollable table */}
-      <div style={{ overflowX: 'auto', borderRadius: 10, border: BD }}>
-        <div style={{ background: '#09101E', minWidth: totalW }}>
+      {/* Empty state */}
+      {habits.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 border border-dashed border-border rounded-xl">
+          <p className="text-muted text-sm mb-3">No {type} habits yet</p>
+          <button onClick={onAdd} className="text-sm" style={{ color: ACCENT }}>
+            Add your first one →
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {habits.map(h => (
+            <HabitCard key={h.id} habit={h} type={type} countDone={countDone} {...rest} />
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
 
-          {/* ── Row 1: WEEK headers ── */}
-          <div style={{ display: 'flex', background: '#0F1829', borderBottom: BD }}>
-            <Td w={NAME_W} style={{ padding: '6px 12px', fontSize: 10, letterSpacing: '0.15em', color: '#4B5563', fontWeight: 700 }}>
-              HABIT
-            </Td>
-            <Td w={GOAL_W} style={{ justifyContent: 'center', fontSize: 10, letterSpacing: '0.15em', color: '#4B5563', fontWeight: 700 }}>
-              GOAL
-            </Td>
-            {weeks.map((days, wi) => !days.length ? null : (
-              <Td key={wi} w={colW(wi)} style={{ justifyContent: 'center', fontSize: 10, letterSpacing: '0.2em', fontWeight: 700, color: WC[wi] }}>
-                WEEK {wi + 1}
-              </Td>
-            ))}
-            <div style={{ flex: 1, minWidth: PROG_W, padding: '6px 12px', fontSize: 10, letterSpacing: '0.15em', color: '#22d3ee', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
-              PROGRESS
-            </div>
+// ── HabitCard ─────────────────────────────────────────────────────────
+
+interface CardProps {
+  habit:   Habit
+  type:    HabitType
+  month:   number
+  year:    number
+  today:   string
+  numDays: number
+  isCompleted: (id: string, date: string) => boolean
+  countDone:   (id: string) => number
+  getStreak:   (id: string) => number
+  toggle:      (id: string, date: string) => void
+  loading:     string | null
+  onEdit:   (h: Habit) => void
+  onDelete: (h: Habit) => void
+}
+
+function HabitCard({
+  habit, type, month, year, today, numDays,
+  isCompleted, countDone, getStreak, toggle, loading,
+  onEdit, onDelete,
+}: CardProps) {
+  const done   = countDone(habit.id)
+  const rate   = pct(done, habit.goal)
+  const streak = getStreak(habit.id)
+
+  return (
+    <div className="group rounded-xl border border-border bg-card hover:bg-surface px-4 py-3.5 transition-colors duration-200">
+
+      {/* ── Header row ── */}
+      <div className="flex items-center gap-3 mb-3">
+        {/* Habit name */}
+        <span className="text-sm text-gray-200 font-medium flex-1 truncate">{habit.name}</span>
+
+        {/* Edit / delete — visible on hover */}
+        <div className="opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity duration-150 flex-shrink-0">
+          <Btn onClick={() => onEdit(habit)}   title="Edit">✎</Btn>
+          <Btn onClick={() => onDelete(habit)} title="Delete" danger>✕</Btn>
+        </div>
+
+        {/* Progress bar */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="w-20 h-1.5 rounded-full overflow-hidden" style={{ background: '#1E2D4E' }}>
+            <div
+              className="h-full rounded-full"
+              style={{
+                width: `${rate}%`,
+                background: `linear-gradient(90deg, ${ACCENT}, ${PINK})`,
+                transition: 'width 0.4s ease',
+              }}
+            />
           </div>
+          <span className="text-xs font-mono w-7 text-right" style={{ color: CYAN }}>
+            {rate}%
+          </span>
+        </div>
 
-          {/* ── Row 2: Day sub-headers (daily only) ── */}
-          {type === 'daily' && (
-            <div style={{ display: 'flex', background: '#0D1525', borderBottom: BD }}>
-              <Td w={NAME_W} />
-              <Td w={GOAL_W} />
-              {weeks.map((days, wi) => !days.length ? null : (
-                <Td key={wi} w={colW(wi)} style={{ padding: '4px 5px' }}>
-                  <div style={{ display: 'flex', gap: GAP }}>
-                    {days.map(d => {
-                      const isT = toISODate(year, month, d) === today
-                      return (
-                        <div key={d} style={{ width: CELL, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                          <span style={{ fontSize: 8, color: isT ? WC[wi] : '#374151', textTransform: 'uppercase' }}>
-                            {dayAbbr(year, month, d).slice(0, 2)}
-                          </span>
-                          <span style={{
-                            fontSize: 9, width: 18, height: 18, borderRadius: 3,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            ...(isT
-                              ? { background: WC[wi], color: '#000', fontWeight: 700 }
-                              : { color: '#6B7280' }),
-                          }}>
-                            {d}
-                          </span>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </Td>
-              ))}
-              {/* Progress column labels (rotated) */}
-              <div style={{ flex: 1, minWidth: PROG_W, display: 'flex', alignItems: 'flex-end', padding: '4px 12px', gap: 10 }}>
-                {(['CMPL', 'GOAL', 'LEFT'] as const).map((lbl, i) => (
-                  <div key={lbl} style={{ width: 46, display: 'flex', justifyContent: 'center' }}>
-                    <span style={{ fontSize: 8, letterSpacing: '0.1em', writingMode: 'vertical-rl', transform: 'rotate(180deg)',
-                      color: i === 0 ? '#22d3ee' : i === 2 ? '#f472b6' : '#374151' }}>
-                      {lbl}
-                    </span>
-                  </div>
-                ))}
-                <div style={{ flex: 1 }} />
-                <div style={{ width: 50, display: 'flex', justifyContent: 'center' }}>
-                  <span style={{ fontSize: 8, color: '#22d3ee', letterSpacing: '0.1em', writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
-                    STREAK
-                  </span>
-                </div>
-              </div>
-            </div>
+        {/* Streak */}
+        <div className="flex items-center gap-1 flex-shrink-0 w-10 justify-end">
+          {streak > 0 ? (
+            <span className="text-xs font-mono" style={{ color: PINK }}>
+              {streak}d 🔥
+            </span>
+          ) : (
+            <span className="text-xs font-mono text-muted">—</span>
           )}
+        </div>
+      </div>
 
-          {/* ── Empty state ── */}
-          {habits.length === 0 && (
-            <div style={{ padding: '32px 0', textAlign: 'center', color: '#374151', fontSize: 12, borderTop: BD }}>
-              No habits yet —{' '}
-              <button onClick={onAdd} style={{ color: '#22d3ee', background: 'none', border: 'none', cursor: 'pointer' }}>
-                add one
-              </button>
-            </div>
-          )}
-
-          {/* ── Habit rows ── */}
-          {habits.map((habit, idx) => {
-            const done = countDone(habit.id)
-            const rate = pct(done, habit.goal)
-            const s    = getStreak(habit.id)
-            const bg   = idx % 2 === 0 ? '#0F1829' : '#09101E'
-
+      {/* ── Day grid (daily) ── */}
+      {type === 'daily' && (
+        <div className="flex gap-[3px]" style={{ overflowX: 'auto', paddingBottom: 2 }}>
+          {Array.from({ length: numDays }, (_, i) => i + 1).map(d => {
+            const date = toISODate(year, month, d)
+            const tick = isCompleted(habit.id, date)
+            const isT  = date === today
+            const fut  = date > today
+            const lkey = `${habit.id}__${date}`
             return (
-              <div key={habit.id} style={{ display: 'flex', background: bg, borderTop: BD }} className="group">
-                {/* Name + edit/delete */}
-                <Td w={NAME_W} style={{ padding: '0 8px', minHeight: 36 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, width: '100%' }}>
-                    <span style={{ fontSize: 12, color: '#D1D5DB', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {habit.name}
-                    </span>
-                    <span className="opacity-0 group-hover:opacity-100" style={{ display: 'flex', gap: 2, transition: 'opacity 0.15s', flexShrink: 0 }}>
-                      <Btn onClick={() => onEdit(habit)}   title="Edit">✎</Btn>
-                      <Btn onClick={() => onDelete(habit)} title="Delete" danger>✕</Btn>
-                    </span>
-                  </div>
-                </Td>
-
-                {/* Goal */}
-                <Td w={GOAL_W} style={{ justifyContent: 'center' }}>
-                  <span style={{ fontSize: 12, color: '#9CA3AF', fontFamily: 'monospace' }}>{habit.goal}</span>
-                </Td>
-
-                {/* Week cells */}
-                {weeks.map((days, wi) => {
-                  if (!days.length) return null
-                  const wc = WC[wi]
-                  if (type === 'daily') {
-                    return (
-                      <Td key={wi} w={colW(wi)} style={{ padding: '3px 5px', alignItems: 'center' }}>
-                        <div style={{ display: 'flex', gap: GAP }}>
-                          {days.map(d => {
-                            const date  = toISODate(year, month, d)
-                            const tick  = isCompleted(habit.id, date)
-                            const isT   = date === today
-                            const fut   = date > today
-                            const lkey  = `${habit.id}__${date}`
-                            return (
-                              <button
-                                key={d}
-                                onClick={() => toggle(habit.id, date)}
-                                disabled={fut || loading === lkey}
-                                style={{
-                                  width: CELL, height: CELL, flexShrink: 0,
-                                  border: `1px solid ${tick ? wc : isT ? wc + '55' : '#1E2D4E'}`,
-                                  background: tick ? wc + '28' : 'transparent',
-                                  color: tick ? wc : 'transparent',
-                                  borderRadius: 4, fontSize: 12, fontWeight: 700,
-                                  opacity: fut ? 0.2 : 1,
-                                  cursor: fut ? 'default' : 'pointer',
-                                  transition: 'all 0.15s',
-                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                }}
-                              >
-                                {tick ? '✓' : ''}
-                              </button>
-                            )
-                          })}
-                        </div>
-                      </Td>
-                    )
-                  } else {
-                    // Weekly: single checkbox per week
-                    const fd   = anchor[wi]
-                    if (!fd) return null
-                    const date = toISODate(year, month, fd)
-                    const tick = isCompleted(habit.id, date)
-                    const fut  = date > today
-                    const lkey = `${habit.id}__${date}`
-                    return (
-                      <Td key={wi} w={colW(wi)} style={{ justifyContent: 'center' }}>
-                        <button
-                          onClick={() => toggle(habit.id, date)}
-                          disabled={fut || loading === lkey}
-                          style={{
-                            width: 34, height: 34,
-                            border: `1px solid ${tick ? wc : '#1E2D4E'}`,
-                            background: tick ? wc + '28' : 'transparent',
-                            color: tick ? wc : 'transparent',
-                            borderRadius: 6, fontSize: 14, fontWeight: 700,
-                            opacity: fut ? 0.2 : 1,
-                            cursor: fut ? 'default' : 'pointer',
-                            transition: 'all 0.15s',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          }}
-                        >
-                          {tick ? '✓' : ''}
-                        </button>
-                      </Td>
-                    )
-                  }
-                })}
-
-                {/* Progress sidebar — rings */}
-                <div style={{ flex: 1, minWidth: PROG_W, display: 'flex', alignItems: 'center', padding: '6px 12px', gap: 10 }}>
-                  <Ring value={done}                      max={habit.goal} color="#22d3ee" label="CMPL" />
-                  <Ring value={habit.goal}                max={habit.goal} color="#374151" label="GOAL" static />
-                  <Ring value={Math.max(0,habit.goal-done)} max={habit.goal} color="#f472b6" label="LEFT" />
-                  <div style={{ flex: 1 }} />
-                  <div style={{ width: 50, textAlign: 'center' }}>
-                    <div style={{ fontSize: 13, fontFamily: 'monospace', fontWeight: 600, color: s > 0 ? '#f472b6' : '#1E2D4E' }}>
-                      {s > 0 ? `${s}d` : '—'}
-                    </div>
-                    <div style={{ fontSize: 8, color: '#374151', letterSpacing: '0.1em', marginTop: 2 }}>STREAK</div>
-                  </div>
+              <button
+                key={d}
+                onClick={() => toggle(habit.id, date)}
+                disabled={fut || loading === lkey}
+                title={`${month}/${d}`}
+                className="flex flex-col items-center flex-shrink-0"
+                style={{ gap: 2, opacity: fut ? 0.2 : 1, cursor: fut ? 'default' : 'pointer' }}
+              >
+                <span style={{
+                  fontSize: 8, lineHeight: 1, fontFamily: 'monospace',
+                  color: isT ? CYAN : '#374151',
+                }}>
+                  {d}
+                </span>
+                <div style={{
+                  width: 20, height: 20, borderRadius: 5, flexShrink: 0,
+                  border: `1px solid ${tick ? ACCENT : isT ? CYAN + '55' : '#1E2D4E'}`,
+                  background: tick ? ACCENT + '22' : 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'all 0.15s',
+                }}>
+                  {tick && (
+                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                      <path d="M1 4L3.5 6.5L9 1" stroke={ACCENT} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
                 </div>
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {/* ── Week indicators (weekly) ── */}
+      {type === 'weekly' && (
+        <div className="flex items-center gap-3">
+          {[1, 2, 3, 4, 5].map(wk => {
+            const firstDay = (wk - 1) * 7 + 1
+            if (firstDay > numDays) return null
+            const date = toISODate(year, month, firstDay)
+            const tick = isCompleted(habit.id, date)
+            const fut  = date > today
+            const lkey = `${habit.id}__${date}`
+            return (
+              <div key={wk} className="flex flex-col items-center gap-1.5">
+                <span style={{ fontSize: 9, color: '#4B5563', fontFamily: 'monospace', letterSpacing: '0.05em' }}>
+                  W{wk}
+                </span>
+                <button
+                  onClick={() => toggle(habit.id, date)}
+                  disabled={fut || loading === lkey}
+                  style={{
+                    width: 36, height: 36, borderRadius: 8,
+                    border: `1px solid ${tick ? ACCENT : '#1E2D4E'}`,
+                    background: tick ? ACCENT + '20' : 'transparent',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: fut ? 'default' : 'pointer',
+                    opacity: fut ? 0.2 : 1,
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {tick && (
+                    <svg width="14" height="11" viewBox="0 0 14 11" fill="none">
+                      <path d="M1 5.5L5 9.5L13 1" stroke={ACCENT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                </button>
               </div>
             )
           })}
 
-          {/* ── Footer rows ── */}
-          {habits.length > 0 && (
-            <>
-              {/* COMPLETED */}
-              <FooterRow label="COMPLETED" weeks={weeks} wi_anchor={anchor} type={type}
-                colW={colW} month={month} year={year}
-                getValue={(days, wi) => type === 'daily'
-                  ? days.map(d => habits.filter(h => isCompleted(h.id, toISODate(year, month, d))).length)
-                  : [anchor[wi] ? habits.filter(h => isCompleted(h.id, toISODate(year, month, anchor[wi]))).length : 0]
-                }
-              />
-              {/* GOAL */}
-              <FooterRow label="GOAL" weeks={weeks} wi_anchor={anchor} type={type}
-                colW={colW} month={month} year={year}
-                getValue={days => type === 'daily' ? days.map(() => habits.length) : [habits.length]}
-              />
-              {/* LEFT */}
-              <FooterRow label="LEFT" weeks={weeks} wi_anchor={anchor} type={type}
-                colW={colW} month={month} year={year}
-                getValue={(days, wi) => type === 'daily'
-                  ? days.map(d => {
-                      const done = habits.filter(h => isCompleted(h.id, toISODate(year, month, d))).length
-                      return habits.length - done
-                    })
-                  : [anchor[wi]
-                      ? habits.length - habits.filter(h => isCompleted(h.id, toISODate(year, month, anchor[wi]))).length
-                      : habits.length]
-                }
-              />
-              {/* WEEKLY PROGRESS bars */}
-              <div style={{ display: 'flex', borderTop: BD, background: '#080D1A' }}>
-                <Td w={NAME_W} style={{ padding: '6px 12px', fontSize: 10, color: '#4B5563', fontWeight: 700, letterSpacing: '0.1em' }}>
-                  WEEKLY PROGRESS
-                </Td>
-                <Td w={GOAL_W} />
-                {weeks.map((days, wi) => {
-                  if (!days.length) return null
-                  const wc = WC[wi]
-                  let rate = 0
-                  if (type === 'daily') {
-                    let done = 0
-                    days.forEach(d => {
-                      const dt = toISODate(year, month, d)
-                      habits.forEach(h => { if (isCompleted(h.id, dt)) done++ })
-                    })
-                    const total = habits.length * days.length
-                    rate = total > 0 ? Math.round((done / total) * 100) : 0
-                  } else {
-                    const fd = anchor[wi]
-                    if (fd) {
-                      const done = habits.filter(h => isCompleted(h.id, toISODate(year, month, fd))).length
-                      rate = habits.length > 0 ? Math.round((done / habits.length) * 100) : 0
-                    }
-                  }
-                  return (
-                    <Td key={wi} w={colW(wi)} style={{ flexDirection: 'column', justifyContent: 'center', padding: '6px 8px', gap: 3 }}>
-                      <div style={{ width: '100%', height: 8, borderRadius: 4, background: '#1E2D4E', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${rate}%`, background: wc, borderRadius: 4, transition: 'width 0.3s' }} />
-                      </div>
-                      <span style={{ fontSize: 9, color: wc, fontFamily: 'monospace', textAlign: 'center' }}>{rate}%</span>
-                    </Td>
-                  )
-                })}
-                <div style={{ flex: 1, minWidth: PROG_W }} />
-              </div>
-            </>
-          )}
-
+          <div className="ml-auto text-xs font-mono" style={{ color: '#4B5563' }}>
+            {done}/{habit.goal} this month
+          </div>
         </div>
-      </div>
-    </div>
-  )
-}
-
-// ── FooterRow ─────────────────────────────────────────────────────────
-
-interface FooterRowProps {
-  label:     string
-  weeks:     number[][]
-  wi_anchor: number[]
-  type:      HabitType
-  colW:      (wi: number) => number
-  month:     number
-  year:      number
-  getValue:  (days: number[], wi: number) => number[]
-}
-
-function FooterRow({ label, weeks, type, colW, getValue }: FooterRowProps) {
-  return (
-    <div style={{ display: 'flex', borderTop: BD, background: '#080D1A' }}>
-      <Td w={NAME_W} style={{ padding: '4px 12px', fontSize: 10, color: '#4B5563', fontWeight: 700, letterSpacing: '0.1em' }}>
-        {label}
-      </Td>
-      <Td w={GOAL_W} />
-      {weeks.map((days, wi) => {
-        if (!days.length) return null
-        const values = getValue(days, wi)
-        return (
-          <Td key={wi} w={colW(wi)} style={{ padding: '4px 5px' }}>
-            {type === 'daily' ? (
-              <div style={{ display: 'flex', gap: GAP }}>
-                {values.map((v, i) => (
-                  <div key={i} style={{ width: CELL, textAlign: 'center' }}>
-                    <span style={{ fontSize: 9, color: '#4B5563', fontFamily: 'monospace' }}>{v}</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{ width: '100%', textAlign: 'center' }}>
-                <span style={{ fontSize: 12, color: '#4B5563', fontFamily: 'monospace' }}>{values[0]}</span>
-              </div>
-            )}
-          </Td>
-        )
-      })}
-      <div style={{ flex: 1, minWidth: PROG_W }} />
-    </div>
-  )
-}
-
-// ── TopPanel ──────────────────────────────────────────────────────────
-
-function TopPanel({ title, habits, countDone }: {
-  title:     string
-  habits:    Habit[]
-  countDone: (id: string) => number
-}) {
-  return (
-    <div style={{ background: '#141E33', border: BD, borderRadius: 12, padding: 20 }}>
-      <h3 style={{ fontSize: 11, color: '#22d3ee', fontWeight: 700, letterSpacing: '0.15em', marginBottom: 16, fontFamily: 'monospace', margin: '0 0 16px 0' }}>
-        {title}
-      </h3>
-      <ol style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {habits.map((h, i) => (
-          <li key={h.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 11, color: '#1E2D4E', fontFamily: 'monospace', width: 16, textAlign: 'right', flexShrink: 0 }}>{i + 1}</span>
-            <span style={{ fontSize: 12, color: '#D1D5DB', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {h.name}
-            </span>
-            <span style={{ fontSize: 11, color: '#6B7280', fontFamily: 'monospace', flexShrink: 0 }}>
-              {pct(countDone(h.id), h.goal)}%
-            </span>
-          </li>
-        ))}
-      </ol>
-    </div>
-  )
-}
-
-// ── Ring — SVG circular progress indicator ────────────────────────────
-
-function Ring({ value, max, color, label, static: isStatic = false, size = 46 }: {
-  value:   number
-  max:     number
-  color:   string
-  label:   string
-  static?: boolean
-  size?:   number
-}) {
-  const sw   = 4
-  const r    = (size - sw * 2) / 2
-  const circ = 2 * Math.PI * r
-  const pct  = max > 0 ? Math.min(value / max, 1) : 0
-  const cx   = size / 2
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, flexShrink: 0 }}>
-      <div style={{ position: 'relative', width: size, height: size }}>
-        <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', display: 'block' }}>
-          {/* Track */}
-          <circle cx={cx} cy={cx} r={r} fill="none" stroke="#1E2D4E" strokeWidth={sw} />
-          {/* Arc */}
-          {!isStatic && pct > 0 && (
-            <circle
-              cx={cx} cy={cx} r={r}
-              fill="none"
-              stroke={color}
-              strokeWidth={sw}
-              strokeDasharray={circ}
-              strokeDashoffset={circ * (1 - pct)}
-              strokeLinecap="round"
-              style={{ transition: 'stroke-dashoffset 0.4s ease' }}
-            />
-          )}
-          {/* Static ring: just a dim full circle */}
-          {isStatic && (
-            <circle cx={cx} cy={cx} r={r} fill="none" stroke="#374151" strokeWidth={sw} />
-          )}
-        </svg>
-        {/* Centre value */}
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <span style={{ fontSize: 11, color: isStatic ? '#6B7280' : color, fontFamily: 'monospace', fontWeight: 600 }}>
-            {value}
-          </span>
-        </div>
-      </div>
-      <span style={{ fontSize: 8, color: '#4B5563', letterSpacing: '0.1em', fontWeight: 700 }}>{label}</span>
-    </div>
-  )
-}
-
-// ── Td — flex table cell ──────────────────────────────────────────────
-
-function Td({ w, children, style, className }: {
-  w:          number
-  children?:  ReactNode
-  style?:     CSSProperties
-  className?: string
-}) {
-  return (
-    <div
-      style={{ width: w, flexShrink: 0, borderRight: BD, display: 'flex', alignItems: 'center', ...style }}
-      className={className}
-    >
-      {children}
+      )}
     </div>
   )
 }
@@ -670,14 +383,10 @@ function Btn({ onClick, title, danger, children }: {
     <button
       onClick={onClick}
       title={title}
-      style={{
-        fontSize: 11, background: 'none', border: 'none', cursor: 'pointer',
-        color: '#4B5563', width: 16, height: 16,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        transition: 'color 0.15s',
-      }}
+      className="w-5 h-5 flex items-center justify-center rounded text-muted hover:text-white transition-colors duration-150"
+      style={{ fontSize: 11, background: 'none', border: 'none', cursor: 'pointer' }}
       onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = danger ? '#f87171' : '#fff' }}
-      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#4B5563' }}
+      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '' }}
     >
       {children}
     </button>
