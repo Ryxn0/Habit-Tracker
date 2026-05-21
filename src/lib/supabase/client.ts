@@ -22,7 +22,7 @@ export function createClient() {
         update:  () => ({ eq: () => ({ select: () => ({ single: async () => ({ data: null, error: null }) }) }) }),
         delete:  () => ({ eq: () => ({ eq: () => ({ eq: async () => ({ error: null }) }) }) }),
       }),
-    } as ReturnType<typeof createBrowserClient>
+    } as unknown as ReturnType<typeof createBrowserClient>
   }
 
   return createBrowserClient(SUPABASE_URL, SUPABASE_KEY)
