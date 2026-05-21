@@ -8,12 +8,12 @@ import { toISODate, todayISO, dayAbbr, pct } from '@/lib/utils'
 import HabitModal from './HabitModal'
 import { createClient } from '@/lib/supabase/client'
 
-// ── Week colour palette (pink · purple · cyan · yellow · green) ──────
-const WC = ['#f472b6', '#c084fc', '#22d3ee', '#facc15', '#4ade80']
+// ── Week colour palette (rose · violet · cyan · amber · emerald) ─────
+const WC = ['#f472b6', '#a78bfa', '#22d3ee', '#f59e0b', '#34d399']
 
 // ── Layout constants ─────────────────────────────────────────────────
-const CELL   = 28   // day-tick cell width & height (px)
-const GAP    = 3    // gap between cells (px)
+const CELL   = 30   // day-tick cell width & height (px)
+const GAP    = 4    // gap between cells (px)
 const NAME_W = 164  // habit name column width (px)
 const GOAL_W = 46   // goal column width (px)
 const PROG_W = 300  // progress sidebar min-width (px)

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import LogoutButton from '@/components/ui/LogoutButton'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,6 +12,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           >
             QUIET PROGRESS
           </Link>
+          <LogoutButton />
         </div>
       </nav>
 
