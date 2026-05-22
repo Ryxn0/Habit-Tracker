@@ -20,7 +20,7 @@ const mono = DM_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Quiet Progress — Habit Tracker',
+  title: 'Stackd — Habit Tracker',
   description: 'Small actions. Big results. Track your daily and weekly habits.',
 }
 
