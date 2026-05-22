@@ -119,7 +119,7 @@ export default function AboutPage() {
             }
           >
             <Image
-              src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1400&h=800&fit=crop&q=80"
+              src="dashboard-preview.png"
               alt="asiryx dashboard preview"
               width={1400}
               height={800}
