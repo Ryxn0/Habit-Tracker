@@ -145,7 +145,7 @@ export default function DashboardClient({ month, year, tab }: Props) {
         backdropFilter: 'blur(12px)',
         borderBottom: '1px solid #e5ddd4',
       }}>
-        <div style={{ maxWidth: 840, margin: '0 auto', padding: '0 20px' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', height: 56, gap: 16 }}>
 
             {/* Logo */}
@@ -244,7 +244,7 @@ export default function DashboardClient({ month, year, tab }: Props) {
       </nav>
 
       {/* ── Main content ─────────────────────────────────────────────── */}
-      <main style={{ flex: 1, maxWidth: 840, margin: '0 auto', width: '100%', padding: '32px 20px' }}>
+      <main style={{ flex: 1, maxWidth: 1200, margin: '0 auto', width: '100%', padding: '32px 20px' }}>
 
         {/* OVERVIEW */}
         {tab === 'overview' && (
