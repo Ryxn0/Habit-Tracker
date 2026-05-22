@@ -186,9 +186,9 @@ function HabitSection({ title, type, habits, onAdd, countDone, ...rest }: Sectio
         <div className="flex-1 h-px bg-border mx-1" style={{ alignSelf: 'center' }} />
         <button
           onClick={onAdd}
-          className="text-xs font-mono text-accent hover:text-white border border-border hover:border-accent/40 px-3 py-1.5 rounded-lg transition-all duration-200"
+          className="btn-primary text-sm px-5 py-2"
         >
-          + Add
+          + Add habit
         </button>
       </div>
 
