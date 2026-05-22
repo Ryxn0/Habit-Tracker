@@ -252,33 +252,17 @@ function HabitCard({
           <Btn onClick={() => onDelete(habit)} title="Delete" danger>✕</Btn>
         </div>
 
-        {/* Progress bar */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <div className="w-20 h-1.5 rounded-full overflow-hidden" style={{ background: '#1E2D4E' }}>
-            <div
-              className="h-full rounded-full"
-              style={{
-                width: `${rate}%`,
-                background: `linear-gradient(90deg, ${ACCENT}, ${PINK})`,
-                transition: 'width 0.4s ease',
-              }}
-            />
-          </div>
-          <span className="text-xs font-mono w-7 text-right" style={{ color: CYAN }}>
-            {rate}%
-          </span>
-        </div>
-
         {/* Streak */}
-        <div className="flex items-center gap-1 flex-shrink-0 w-10 justify-end">
+        <div className="flex items-center gap-1 flex-shrink-0">
           {streak > 0 ? (
-            <span className="text-xs font-mono" style={{ color: PINK }}>
-              {streak}d 🔥
-            </span>
+            <span className="text-xs font-mono" style={{ color: PINK }}>{streak}d 🔥</span>
           ) : (
             <span className="text-xs font-mono text-muted">—</span>
           )}
         </div>
+
+        {/* Progress ring */}
+        <Ring value={done} max={habit.goal} id={habit.id} />
       </div>
 
       {/* ── Day grid (daily) ── */}
@@ -367,6 +351,60 @@ function HabitCard({
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// ── Ring — SVG circular progress indicator ────────────────────────────
+
+function Ring({ value, max, id, size = 44 }: {
+  value: number
+  max:   number
+  id:    string
+  size?: number
+}) {
+  const sw      = 4
+  const r       = (size - sw * 2) / 2
+  const circ    = 2 * Math.PI * r
+  const fill    = max > 0 ? Math.min(value / max, 1) : 0
+  const rate    = Math.round(fill * 100)
+  const cx      = size / 2
+  const gradId  = `rg-${id}`
+
+  return (
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', display: 'block' }}>
+        <defs>
+          <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stopColor={ACCENT} />
+            <stop offset="100%" stopColor={PINK}   />
+          </linearGradient>
+        </defs>
+        {/* Track */}
+        <circle cx={cx} cy={cx} r={r} fill="none" stroke="#1E2D4E" strokeWidth={sw} />
+        {/* Arc */}
+        {fill > 0 && (
+          <circle
+            cx={cx} cy={cx} r={r}
+            fill="none"
+            stroke={`url(#${gradId})`}
+            strokeWidth={sw}
+            strokeDasharray={circ}
+            strokeDashoffset={circ * (1 - fill)}
+            strokeLinecap="round"
+            style={{ transition: 'stroke-dashoffset 0.4s ease' }}
+          />
+        )}
+      </svg>
+      {/* Centre label */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <span style={{ fontSize: 9, fontFamily: 'monospace', fontWeight: 600, color: fill > 0 ? CYAN : '#374151' }}>
+          {rate}%
+        </span>
+      </div>
     </div>
   )
 }
