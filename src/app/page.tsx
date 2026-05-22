@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import NavMenu from '@/components/ui/NavMenu'
 
 export default function HomePage() {
   return (
@@ -8,14 +9,7 @@ export default function HomePage() {
         <span className="font-display text-2xl text-white tracking-tight">
           Stackd
         </span>
-        <div className="flex items-center gap-4">
-          <Link href="/auth/login" className="btn-ghost text-sm py-2 px-4">
-            Sign in
-          </Link>
-          <Link href="/dashboard" className="btn-primary text-sm py-2 px-4">
-            Get started
-          </Link>
-        </div>
+        <NavMenu />
       </nav>
 
       {/* Hero */}

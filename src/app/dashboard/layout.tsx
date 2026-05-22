@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import LogoutButton from '@/components/ui/LogoutButton'
+import DashboardNav from '@/components/ui/DashboardNav'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -12,7 +12,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           >
             STACKD
           </Link>
-          <LogoutButton />
+          <DashboardNav />
         </div>
       </nav>
 
