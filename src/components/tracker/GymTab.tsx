@@ -9,9 +9,9 @@ import {
   ResponsiveContainer, Cell,
 } from 'recharts'
 
-const ACCENT = '#c4573d'
-const CYAN   = '#2563eb'
-const PINK   = '#b45309'
+const ACCENT = '#E94560'
+const CYAN   = '#22d3ee'
+const PINK   = '#f472b6'
 
 interface ChartDay { day: string; date: string; volume: number }
 
@@ -118,30 +118,30 @@ export default function GymTab({ userId }: Props) {
   const totalVolume  = exercises.reduce((s, e) => s + e.sets * e.reps * Number(e.weight_kg), 0)
   const totalSets    = exercises.reduce((s, e) => s + e.sets, 0)
 
-  const inputCls = 'bg-white border border-[#e5ddd4] rounded-xl px-4 py-2.5 text-[#1c1917] placeholder:text-[#a8a29e] focus:outline-none focus:border-[#c4573d]/60 text-sm'
+  const inputCls = 'bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-white placeholder:text-zinc-600 focus:outline-none focus:border-blue-400/60 text-sm'
 
   return (
     <div className="space-y-5 animate-fade-in">
 
       {/* ── Weekly volume chart ────────────────────────────────────── */}
-      <div className="rounded-xl p-5" style={{ background: '#ffffff', border: '1px solid #e5ddd4' }}>
-        <div className="text-xs font-mono uppercase tracking-widest mb-4" style={{ color: '#a8a29e' }}>
+      <div className="rounded-xl p-5" style={{ background: '#141E33', border: '1px solid #1E2D4E' }}>
+        <div className="text-xs font-mono uppercase tracking-widest mb-4" style={{ color: '#4B5563' }}>
           Weekly Volume (sets × reps × kg)
         </div>
         <div style={{ height: 130 }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={weekData} barSize={28} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-              <XAxis dataKey="day" tick={{ fill: '#a8a29e', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <XAxis dataKey="day" tick={{ fill: '#4B5563', fontSize: 10 }} axisLine={false} tickLine={false} />
               <YAxis hide />
               <Tooltip
-                contentStyle={{ background: '#fff', border: '1px solid #e5ddd4', borderRadius: 8, fontSize: 12 }}
-                labelStyle={{ color: '#78716c' }}
+                contentStyle={{ background: '#0F1829', border: '1px solid #1E2D4E', borderRadius: 8, fontSize: 12 }}
+                labelStyle={{ color: '#9CA3AF' }}
                 cursor={{ fill: 'rgba(255,255,255,0.03)' }}
                 formatter={(v) => [`${Number(v).toLocaleString()} kg`, 'Volume']}
               />
               <Bar dataKey="volume" radius={[4, 4, 0, 0]}>
                 {weekData.map((d, i) => (
-                  <Cell key={i} fill={i === weekData.length - 1 ? CYAN : '#e5ddd4'} />
+                  <Cell key={i} fill={i === weekData.length - 1 ? CYAN : '#1E2D4E'} />
                 ))}
               </Bar>
             </BarChart>
@@ -152,18 +152,18 @@ export default function GymTab({ userId }: Props) {
       {/* ── Today's session ───────────────────────────────────────── */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <span className="font-display text-xl" style={{ color: '#1c1917' }}>
+          <span className="font-display text-xl text-white">
             {session ? session.name : "Today's Workout"}
           </span>
           {session && (
             <div className="flex items-center gap-3">
-              <span className="text-xs font-mono" style={{ color: '#a8a29e' }}>
+              <span className="text-xs font-mono" style={{ color: '#4B5563' }}>
                 {totalSets} sets · {Math.round(totalVolume).toLocaleString()} kg volume
               </span>
               <button
                 onClick={() => setShowExForm(v => !v)}
                 className="text-sm px-4 py-2 rounded-lg font-semibold transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
-                style={{ background: showExForm ? '#e5ddd4' : ACCENT, color: showExForm ? '#78716c' : '#fff' }}>
+                style={{ background: showExForm ? '#1E2D4E' : ACCENT, color: '#fff' }}>
                 {showExForm ? 'Cancel' : '+ Add exercise'}
               </button>
             </div>
@@ -197,7 +197,7 @@ export default function GymTab({ userId }: Props) {
             {showExForm && (
               <form onSubmit={addExercise}
                 className="rounded-xl p-4 mb-4 space-y-3 animate-slide-up"
-                style={{ background: '#ffffff', border: '1px solid #e5ddd4' }}>
+                style={{ background: '#141E33', border: '1px solid #1E2D4E' }}>
 
                 <input type="text" placeholder="Exercise name (e.g. Bench Press)" required
                   value={exForm.name}
@@ -247,8 +247,8 @@ export default function GymTab({ userId }: Props) {
                       className="flex items-center justify-between px-4 py-3 rounded-xl group animate-slide-up"
                       style={{ background: '#ffffff', border: '1px solid #e5ddd4', animationDelay: `${i * 40}ms` }}>
                       <div>
-                        <span className="text-sm font-medium" style={{ color: '#1c1917' }}>{ex.name}</span>
-                        <div className="text-xs mt-0.5 font-mono" style={{ color: '#a8a29e' }}>
+                        <span className="text-sm font-medium text-gray-200">{ex.name}</span>
+                        <div className="text-xs mt-0.5 font-mono" style={{ color: '#4B5563' }}>
                           {ex.sets} × {ex.reps} @ {Number(ex.weight_kg)}kg
                         </div>
                       </div>
@@ -268,7 +268,7 @@ export default function GymTab({ userId }: Props) {
 
                 {/* Session totals */}
                 <div className="flex justify-end gap-6 pt-2 px-1">
-                  <span className="text-xs font-mono" style={{ color: '#a8a29e' }}>
+                  <span className="text-xs font-mono" style={{ color: '#4B5563' }}>
                     {exercises.length} exercise{exercises.length !== 1 ? 's' : ''}
                   </span>
                   <span className="text-xs font-mono" style={{ color: PINK }}>

@@ -65,52 +65,52 @@ body {
   .habit-tick.future { @apply opacity-30 cursor-not-allowed pointer-events-none; }
 }
 
-/* ── Dashboard light theme overrides ─────────────────────────────────── */
+/* ── Dashboard dark theme overrides ──────────────────────────────────── */
 
 .dashboard {
   min-height: 100vh;
-  background: #f0ebe4;
-  color: #1c1917;
+  background: #060910;
+  color: #ffffff;
 }
 
-.dashboard ::-webkit-scrollbar-track { background: #f0ebe4; }
-.dashboard ::-webkit-scrollbar-thumb { background: #d6cec5; border-radius: 2px; }
+.dashboard ::-webkit-scrollbar-track { background: #060910; }
+.dashboard ::-webkit-scrollbar-thumb { background: #1E2D4E; border-radius: 2px; }
 
 .dashboard .card {
-  background: #ffffff;
-  border-color: #e5ddd4;
-  color: #1c1917;
+  background: #0F1829;
+  border-color: #1E2D4E;
+  color: #ffffff;
 }
 
 .dashboard .habit-card {
-  background: #ffffff;
-  border-color: #e5ddd4;
-  color: #1c1917;
+  background: #0F1829;
+  border-color: #1E2D4E;
+  color: #ffffff;
 }
 
 .dashboard .habit-card:hover {
-  background: #faf7f3;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  background: #141E33;
+  box-shadow: 0 8px 32px rgba(233, 69, 96, 0.07), 0 2px 10px rgba(0, 0, 0, 0.35);
   transform: translateY(-2px);
 }
 
 .dashboard .btn-primary {
-  background: #c4573d;
-  box-shadow: none;
+  background: #E94560;
+  box-shadow: 0 0 16px rgba(233,69,96,0.25);
 }
 
 .dashboard .btn-primary:hover {
-  background: #b34e37;
-  box-shadow: none;
+  background: #d63b54;
+  box-shadow: 0 0 20px rgba(233,69,96,0.35);
 }
 
 .dashboard .btn-ghost {
-  border-color: #e5ddd4;
-  color: #78716c;
+  border-color: #1E2D4E;
+  color: rgba(255,255,255,0.4);
 }
 
 .dashboard .btn-ghost:hover {
-  color: #1c1917;
-  background: #f5f0eb;
-  border-color: #d6cec5;
+  color: #ffffff;
+  background: #0F1829;
+  border-color: #1E2D4E;
 }

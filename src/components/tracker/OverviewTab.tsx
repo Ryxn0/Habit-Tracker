@@ -13,12 +13,12 @@ import Link from 'next/link'
 
 type Tab = 'overview' | 'habits' | 'calories' | 'gym'
 
-const ACCENT  = '#c4573d'
-const TEXT    = '#1c1917'
-const SUBTLE  = '#78716c'
-const MUTED   = '#a8a29e'
-const BORDER  = '#e5ddd4'
-const CARD    = '#ffffff'
+const ACCENT  = '#E94560'
+const TEXT    = '#ffffff'
+const SUBTLE  = '#9CA3AF'
+const MUTED   = '#4B5563'
+const BORDER  = '#1E2D4E'
+const CARD    = '#0F1829'
 
 interface HeatDay  { date: string; pct: number }
 interface CalDay   { day: string; protein: number; carbs: number; fat: number }
@@ -158,11 +158,11 @@ export default function OverviewTab({
   const heatTo   = new Date().toLocaleDateString('en', { month: 'short', day: 'numeric' }).toUpperCase()
 
   function heatColor(p: number): string {
-    if (p === 0)    return '#ebe6df'
-    if (p < 0.25)  return '#d4c5b0'
-    if (p < 0.5)   return '#b8a07a'
-    if (p < 0.75)  return '#8a6c4a'
-    return '#5c4030'
+    if (p === 0)   return '#1E2D4E'
+    if (p < 0.25)  return '#3b1d2e'
+    if (p < 0.5)   return '#6b2540'
+    if (p < 0.75)  return '#a02040'
+    return '#E94560'
   }
 
   function tabUrl(t: Tab) { return `/dashboard?month=${month}&year=${year}&tab=${t}` }
@@ -175,7 +175,7 @@ export default function OverviewTab({
 
       {/* ── Greeting card ────────────────────────────────────────────── */}
       <div style={{ ...C, position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: 0, right: 0, width: 320, height: 220, background: 'radial-gradient(ellipse at 80% 10%, rgba(196,87,61,0.09) 0%, transparent 65%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: 0, right: 0, width: 320, height: 220, background: 'radial-gradient(ellipse at 80% 10%, rgba(233,69,96,0.12) 0%, transparent 65%)', pointerEvents: 'none' }} />
         <p className={lbl} style={{ color: MUTED }}>{dateStr}</p>
         <h1 className="font-display mt-2" style={{ fontSize: 56, lineHeight: 1.05, color: TEXT }}>{greeting}</h1>
         <p className="text-sm mt-2 max-w-sm" style={{ color: SUBTLE }}>
@@ -185,21 +185,21 @@ export default function OverviewTab({
 
       {/* ── 3 main stat cards ────────────────────────────────────────── */}
       <div className="grid grid-cols-3 gap-3">
-        <StatCard dot="#c4573d" label="Habits Today"
+        <StatCard dot="#E94560" label="Habits Today"
           value={`${dailyDoneToday}/${dailyHabits.length}`} sub="completed" />
-        <StatCard dot="#c4573d" label="Calories"
+        <StatCard dot="#E94560" label="Calories"
           value={`${todayCals.toLocaleString()}/${calGoal.toLocaleString()}`}
           sub={`${Math.round(Math.min(100, (todayCals / calGoal) * 100))}% of daily goal`} />
-        <StatCard dot="#d97706" label="Workout"
+        <StatCard dot="#22d3ee" label="Workout"
           value={todaySession ?? '—'} sub={todaySession ? 'logged today' : 'not logged'} />
       </div>
 
       {/* ── 4 metric cards ───────────────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <MetricCard dot="#4a7c59" label="Current Streak" value={`${currentStreak}d`} sub="consecutive days" />
-        <MetricCard dot="#c4573d" label="Best Streak"    value={`${bestStreak}d`}    sub={`in ${monthName(month)}`} />
-        <MetricCard dot="#d97706" label="Monthly Rate"   value={`${monthlyRate}%`}   sub={`avg across ${allHabits.length} habits`} />
-        <MetricCard dot="#d97706" label="Cals Remaining" value={Math.max(0, calGoal - todayCals).toLocaleString()} sub="until daily goal" />
+        <MetricCard dot="#4ade80" label="Current Streak" value={`${currentStreak}d`} sub="consecutive days" />
+        <MetricCard dot="#E94560" label="Best Streak"    value={`${bestStreak}d`}    sub={`in ${monthName(month)}`} />
+        <MetricCard dot="#f472b6" label="Monthly Rate"   value={`${monthlyRate}%`}   sub={`avg across ${allHabits.length} habits`} />
+        <MetricCard dot="#22d3ee" label="Cals Remaining" value={Math.max(0, calGoal - todayCals).toLocaleString()} sub="until daily goal" />
       </div>
 
       {/* ── Heatmap + Jump in ────────────────────────────────────────── */}
@@ -249,7 +249,7 @@ export default function OverviewTab({
           <div className="flex items-center justify-between mt-1 mb-3">
             <h3 className="font-display text-xl" style={{ color: TEXT }}>Calories & macros</h3>
             <div className="flex gap-3">
-              {[{ l: 'PROTEIN', c: '#c4573d' }, { l: 'CARBS', c: '#d97706' }, { l: 'FAT', c: '#4a7c59' }].map(m => (
+              {[{ l: 'PROTEIN', c: '#22d3ee' }, { l: 'CARBS', c: '#f472b6' }, { l: 'FAT', c: '#fb923c' }].map(m => (
                 <span key={m.l} className="flex items-center gap-1">
                   <span style={{ width: 7, height: 7, borderRadius: '50%', background: m.c, display: 'inline-block' }} />
                   <span className="text-xs font-mono" style={{ color: MUTED }}>{m.l}</span>
@@ -264,9 +264,9 @@ export default function OverviewTab({
                 <YAxis hide />
                 <Tooltip contentStyle={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 12 }}
                   labelStyle={{ color: SUBTLE }} cursor={{ stroke: BORDER }} />
-                <Line type="monotone" dataKey="protein" stroke="#c4573d" strokeWidth={1.5} dot={false} />
-                <Line type="monotone" dataKey="carbs"   stroke="#d97706" strokeWidth={1.5} dot={false} />
-                <Line type="monotone" dataKey="fat"     stroke="#4a7c59" strokeWidth={1.5} dot={false} />
+                <Line type="monotone" dataKey="protein" stroke="#22d3ee" strokeWidth={1.5} dot={false} />
+                <Line type="monotone" dataKey="carbs"   stroke="#f472b6" strokeWidth={1.5} dot={false} />
+                <Line type="monotone" dataKey="fat"     stroke="#fb923c" strokeWidth={1.5} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -291,7 +291,7 @@ export default function OverviewTab({
                   formatter={(v) => [`${Number(v).toLocaleString()} kg`, 'Volume']} />
                 <Bar dataKey="volume" radius={[4, 4, 0, 0]}>
                   {volChart.map((_, i) => (
-                    <Cell key={i} fill={i === volChart.length - 1 ? ACCENT : '#e5ddd4'} />
+                    <Cell key={i} fill={i === volChart.length - 1 ? ACCENT : '#1E2D4E'} />
                   ))}
                 </Bar>
               </BarChart>
@@ -418,13 +418,13 @@ function JumpItem({ href, label, sub }: { href: string; label: string; sub: stri
     <Link href={href}
       className="flex items-center justify-between p-3 rounded-xl transition-all duration-150 group"
       style={{ border: `1px solid ${BORDER}` }}
-      onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = '#faf7f3' }}
+      onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = '#141E33' }}
       onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = '' }}>
       <div>
         <div className="text-sm font-medium" style={{ color: TEXT }}>{label}</div>
         <div className="text-xs mt-0.5" style={{ color: MUTED }}>{sub}</div>
       </div>
-      <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#f5f0eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: SUBTLE, fontSize: 14 }}>
+      <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#1E2D4E', display: 'flex', alignItems: 'center', justifyContent: 'center', color: SUBTLE, fontSize: 14 }}>
         →
       </div>
     </Link>

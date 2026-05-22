@@ -141,9 +141,9 @@ export default function DashboardClient({ month, year, tab }: Props) {
       {/* ── Top nav ──────────────────────────────────────────────────── */}
       <nav style={{
         position: 'sticky', top: 0, zIndex: 40,
-        background: 'rgba(240,235,228,0.92)',
+        background: 'rgba(6,9,16,0.92)',
         backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #e5ddd4',
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
       }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', height: 56, gap: 16 }}>
@@ -154,7 +154,7 @@ export default function DashboardClient({ month, year, tab }: Props) {
                 fontFamily: 'var(--font-display)',
                 fontSize: 22,
                 fontWeight: 400,
-                color: '#1c1917',
+                color: '#ffffff',
                 letterSpacing: '-0.01em',
               }}>
                 asiryx<span style={{ color: ACCENT }}>.</span>
@@ -165,7 +165,7 @@ export default function DashboardClient({ month, year, tab }: Props) {
             <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
               <div style={{
                 display: 'flex', gap: 2, padding: 3,
-                background: '#ebe6df', borderRadius: 999,
+                background: 'rgba(255,255,255,0.04)', borderRadius: 999,
               }}>
                 {TABS.map(({ key, label }) => (
                   <Link key={key} href={tabUrl(key)} style={{ textDecoration: 'none' }}>
@@ -176,9 +176,9 @@ export default function DashboardClient({ month, year, tab }: Props) {
                       fontSize: 13,
                       fontWeight: 500,
                       transition: 'all 0.15s',
-                      background: tab === key ? '#fff' : 'transparent',
-                      color: tab === key ? '#1c1917' : '#78716c',
-                      boxShadow: tab === key ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                      background: tab === key ? '#E94560' : 'transparent',
+                      color: tab === key ? '#ffffff' : 'rgba(255,255,255,0.4)',
+                      boxShadow: tab === key ? '0 0 12px rgba(233,69,96,0.35)' : 'none',
                       cursor: 'pointer',
                     }}>
                       {label}
@@ -194,8 +194,8 @@ export default function DashboardClient({ month, year, tab }: Props) {
                 onClick={() => setMenuOpen(v => !v)}
                 style={{
                   width: 36, height: 36, borderRadius: 8,
-                  background: menuOpen ? '#e5ddd4' : 'transparent',
-                  border: '1px solid #e5ddd4',
+                  background: menuOpen ? 'rgba(255,255,255,0.08)' : 'transparent',
+                  border: '1px solid rgba(255,255,255,0.08)',
                   cursor: 'pointer',
                   display: 'flex', flexDirection: 'column', alignItems: 'center',
                   justifyContent: 'center', gap: 4,
@@ -204,7 +204,7 @@ export default function DashboardClient({ month, year, tab }: Props) {
               >
                 {[0, 1, 2].map(i => (
                   <span key={i} style={{
-                    width: 15, height: 1.5, background: '#78716c',
+                    width: 15, height: 1.5, background: 'rgba(255,255,255,0.5)',
                     borderRadius: 1, display: 'block',
                   }} />
                 ))}
@@ -213,25 +213,25 @@ export default function DashboardClient({ month, year, tab }: Props) {
               {menuOpen && (
                 <div style={{
                   position: 'absolute', top: 44, right: 0,
-                  background: '#fff', border: '1px solid #e5ddd4',
-                  borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+                  background: '#0F1829', border: '1px solid #1E2D4E',
+                  borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
                   minWidth: 140, zIndex: 100, overflow: 'hidden',
                 }}>
                   <button
                     onClick={handleSignOut}
                     style={{
                       width: '100%', padding: '10px 16px', textAlign: 'left',
-                      fontSize: 13, color: '#78716c', display: 'block',
+                      fontSize: 13, color: 'rgba(255,255,255,0.5)', display: 'block',
                       background: 'none', border: 'none', cursor: 'pointer',
                       transition: 'all 0.15s',
                     }}
                     onMouseEnter={e => {
-                      (e.currentTarget as HTMLButtonElement).style.background = '#f5f0eb'
-                      ;(e.currentTarget as HTMLButtonElement).style.color = '#1c1917'
+                      (e.currentTarget as HTMLButtonElement).style.background = '#141E33'
+                      ;(e.currentTarget as HTMLButtonElement).style.color = '#ffffff'
                     }}
                     onMouseLeave={e => {
                       (e.currentTarget as HTMLButtonElement).style.background = 'none'
-                      ;(e.currentTarget as HTMLButtonElement).style.color = '#78716c'
+                      ;(e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.5)'
                     }}
                   >
                     Sign out
@@ -273,9 +273,9 @@ export default function DashboardClient({ month, year, tab }: Props) {
             {ready && allHabits.length === 0 ? (
               <div style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
-                padding: '64px 0', border: '1px dashed #e5ddd4', borderRadius: 16, gap: 12,
+                padding: '64px 0', border: '1px dashed #1E2D4E', borderRadius: 16, gap: 12,
               }}>
-                <p style={{ color: '#a8a29e', fontSize: 14, margin: 0 }}>
+                <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 14, margin: 0 }}>
                   No habits for {monthName(month)} {year}
                 </p>
                 <button
@@ -325,11 +325,11 @@ export default function DashboardClient({ month, year, tab }: Props) {
 
       {/* ── Footer ───────────────────────────────────────────────────── */}
       <footer style={{
-        borderTop: '1px solid #e5ddd4',
+        borderTop: '1px solid rgba(255,255,255,0.06)',
         padding: '16px 20px',
         textAlign: 'center',
         fontSize: 12,
-        color: '#a8a29e',
+        color: 'rgba(255,255,255,0.25)',
         fontFamily: 'monospace',
         letterSpacing: '0.06em',
       }}>
@@ -353,7 +353,7 @@ function ViewHeader({
     <div style={{ marginBottom: 28 }}>
       <p style={{
         fontSize: 11, fontFamily: 'monospace', letterSpacing: '0.12em',
-        color: '#a8a29e', textTransform: 'uppercase', marginBottom: 8,
+        color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', marginBottom: 8,
       }}>
         {label}
       </p>
@@ -361,12 +361,12 @@ function ViewHeader({
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
           <h1 style={{
             fontFamily: 'var(--font-display)', fontSize: 36, fontWeight: 400,
-            color: '#1c1917', lineHeight: 1, margin: 0,
+            color: '#ffffff', lineHeight: 1, margin: 0,
           }}>
             {title}
           </h1>
           {sub && (
-            <span style={{ fontSize: 13, color: '#a8a29e', fontFamily: 'monospace' }}>{sub}</span>
+            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', fontFamily: 'monospace' }}>{sub}</span>
           )}
         </div>
         {children}
@@ -385,15 +385,15 @@ function MonthNav({
   next: { month: number; year: number }
   isCurrentMonth: boolean
 }) {
-  const ACCENT = '#c4573d'
+  const ACCENT = '#E94560'
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
       <Link
         href={`/dashboard?month=${prev.month}&year=${prev.year}&tab=habits`}
         style={{
           width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          borderRadius: 8, border: '1px solid #e5ddd4', color: '#78716c',
-          textDecoration: 'none', fontSize: 14, background: '#fff',
+          borderRadius: 8, border: '1px solid #1E2D4E', color: 'rgba(255,255,255,0.5)',
+          textDecoration: 'none', fontSize: 14, background: '#0F1829',
         }}
       >
         ←
@@ -402,9 +402,9 @@ function MonthNav({
       <span style={{
         padding: '5px 12px', borderRadius: 999, fontSize: 12,
         fontFamily: 'monospace', letterSpacing: '0.06em',
-        background: isCurrentMonth ? `${ACCENT}15` : '#f5f0eb',
-        color: isCurrentMonth ? ACCENT : '#78716c',
-        border: `1px solid ${isCurrentMonth ? `${ACCENT}30` : '#e5ddd4'}`,
+        background: isCurrentMonth ? `${ACCENT}15` : 'rgba(255,255,255,0.04)',
+        color: isCurrentMonth ? ACCENT : 'rgba(255,255,255,0.5)',
+        border: `1px solid ${isCurrentMonth ? `${ACCENT}30` : '#1E2D4E'}`,
       }}>
         {monthName(month)} {year}
       </span>
@@ -416,7 +416,7 @@ function MonthNav({
             padding: '5px 10px', borderRadius: 999, fontSize: 11,
             fontFamily: 'monospace', letterSpacing: '0.1em',
             color: ACCENT, textDecoration: 'none',
-            border: `1px solid ${ACCENT}40`, background: `${ACCENT}10`,
+            border: `1px solid ${ACCENT}40`, background: `${ACCENT}15`,
           }}
         >
           TODAY
@@ -427,8 +427,8 @@ function MonthNav({
         href={`/dashboard?month=${next.month}&year=${next.year}&tab=habits`}
         style={{
           width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          borderRadius: 8, border: '1px solid #e5ddd4', color: '#78716c',
-          textDecoration: 'none', fontSize: 14, background: '#fff',
+          borderRadius: 8, border: '1px solid #1E2D4E', color: 'rgba(255,255,255,0.5)',
+          textDecoration: 'none', fontSize: 14, background: '#0F1829',
         }}
       >
         →
