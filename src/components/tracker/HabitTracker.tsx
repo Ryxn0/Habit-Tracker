@@ -478,8 +478,8 @@ function Btn({ onClick, title, danger, children }: {
     <button
       onClick={onClick}
       title={title}
-      className="w-5 h-5 flex items-center justify-center rounded text-muted hover:text-white transition-colors duration-150"
-      style={{ fontSize: 11, background: 'none', border: 'none', cursor: 'pointer' }}
+      className="w-7 h-7 flex items-center justify-center rounded text-muted hover:text-white transition-colors duration-150"
+      style={{ fontSize: 14, background: 'none', border: 'none', cursor: 'pointer' }}
       onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = danger ? '#f87171' : '#fff' }}
       onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '' }}
     >
