@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { DM_Serif_Display, Inter, DM_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import Script from 'next/script'
 import './globals.css'
 
 const display = DM_Serif_Display({
@@ -31,6 +32,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-bg text-white font-body antialiased min-h-screen">
         {children}
         <Analytics />
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-NKFWLLD1P0"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-NKFWLLD1P0');
+          `}
+        </Script>
       </body>
     </html>
   )
