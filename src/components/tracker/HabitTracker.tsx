@@ -33,8 +33,9 @@ export default function HabitTracker({
   const [completionSet, setCompletionSet] = useState<Set<string>>(
     () => new Set(completions.map(c => `${c.habit_id}__${c.date}`))
   )
-  const [loading, setLoading] = useState<string | null>(null)
-  const [modal,   setModal]   = useState<ModalState>({ open: false, habit: null, defaultType: 'daily' })
+  const [loading,      setLoading]      = useState<string | null>(null)
+  const [modal,        setModal]        = useState<ModalState>({ open: false, habit: null, defaultType: 'daily' })
+  const [deleteTarget, setDeleteTarget] = useState<Habit | null>(null)
 
   const today   = todayISO()
   const numDays = getDaysInMonth(new Date(year, month - 1))
@@ -112,8 +113,10 @@ export default function HabitTracker({
     close()
   }
 
-  async function handleDelete(habit: Habit) {
-    if (!window.confirm(`Delete "${habit.name}"?`)) return
+  async function confirmDelete() {
+    if (!deleteTarget) return
+    const habit = deleteTarget
+    setDeleteTarget(null)
     const { error } = await createClient().from('habits')
       .delete().eq('id', habit.id).eq('user_id', userId)
     if (error) return
@@ -129,7 +132,7 @@ export default function HabitTracker({
   const shared = {
     month, year, today, numDays,
     isCompleted, countDone, getStreak, toggle, loading,
-    onEdit: openEdit, onDelete: handleDelete,
+    onEdit: openEdit, onDelete: setDeleteTarget,
   }
 
   return (
@@ -142,6 +145,14 @@ export default function HabitTracker({
           habit={modal.habit} defaultType={modal.defaultType}
           month={month} year={year}
           onSave={handleSave} onClose={close}
+        />
+      )}
+
+      {deleteTarget && (
+        <DeleteConfirmModal
+          name={deleteTarget.name}
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteTarget(null)}
         />
       )}
     </div>
@@ -351,6 +362,52 @@ function HabitCard({
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// ── DeleteConfirmModal ────────────────────────────────────────────────
+
+function DeleteConfirmModal({ name, onConfirm, onCancel }: {
+  name:      string
+  onConfirm: () => void
+  onCancel:  () => void
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      onClick={e => { if (e.target === e.currentTarget) onCancel() }}
+    >
+      <div className="card w-full max-w-sm animate-slide-up text-center">
+        {/* Icon */}
+        <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4"
+          style={{ background: '#E9456015', border: '1px solid #E9456030' }}>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M8.5 4h3M3 6h14M5.5 6l.9 10.1A1 1 0 007.4 17h5.2a1 1 0 001-.9L14.5 6" stroke="#E94560" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+
+        <h3 className="font-display text-xl text-white mb-2">Remove habit?</h3>
+        <p className="text-muted text-sm mb-6 leading-relaxed">
+          <span className="text-subtle font-medium">&ldquo;{name}&rdquo;</span> and all its
+          completion history will be permanently deleted.
+        </p>
+
+        <div className="flex gap-3">
+          <button onClick={onCancel} className="btn-ghost flex-1">
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 py-3 rounded-lg font-semibold text-sm transition-all duration-200 active:scale-95"
+            style={{ background: '#E94560', color: '#fff' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#d63b54' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#E94560' }}
+          >
+            Yes, remove it
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
