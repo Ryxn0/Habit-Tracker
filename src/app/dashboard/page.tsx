@@ -1,8 +1,8 @@
 import DashboardClient from '@/components/tracker/DashboardClient'
 import { currentMonth, currentYear } from '@/lib/utils'
 
-type Tab = 'habits' | 'calories' | 'gym'
-const VALID_TABS: Tab[] = ['habits', 'calories', 'gym']
+export type Tab = 'overview' | 'habits' | 'calories' | 'gym'
+const VALID_TABS: Tab[] = ['overview', 'habits', 'calories', 'gym']
 
 export default function DashboardPage({
   searchParams,
@@ -14,7 +14,7 @@ export default function DashboardPage({
   const year  = Math.max(2000, Math.min(2100, Number(searchParams.year) || now.year))
   const tab   = VALID_TABS.includes(searchParams.tab as Tab)
     ? (searchParams.tab as Tab)
-    : 'habits'
+    : 'overview'
 
   return <DashboardClient month={month} year={year} tab={tab} />
 }

@@ -17,10 +17,7 @@ body {
   background-attachment: fixed;
 }
 
-::selection {
-  background: #E94560;
-  color: white;
-}
+::selection { background: #E94560; color: white; }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: #09101E; }
@@ -63,15 +60,57 @@ body {
            select-none text-sm font-mono;
   }
 
-  .habit-tick.done {
-    @apply bg-done/20 border-done text-done animate-tick;
-  }
+  .habit-tick.done  { @apply bg-done/20 border-done text-done animate-tick; }
+  .habit-tick.today { @apply border-accent/50; }
+  .habit-tick.future { @apply opacity-30 cursor-not-allowed pointer-events-none; }
+}
 
-  .habit-tick.today {
-    @apply border-accent/50;
-  }
+/* ── Dashboard light theme overrides ─────────────────────────────────── */
 
-  .habit-tick.future {
-    @apply opacity-30 cursor-not-allowed pointer-events-none;
-  }
+.dashboard {
+  min-height: 100vh;
+  background: #f0ebe4;
+  color: #1c1917;
+}
+
+.dashboard ::-webkit-scrollbar-track { background: #f0ebe4; }
+.dashboard ::-webkit-scrollbar-thumb { background: #d6cec5; border-radius: 2px; }
+
+.dashboard .card {
+  background: #ffffff;
+  border-color: #e5ddd4;
+  color: #1c1917;
+}
+
+.dashboard .habit-card {
+  background: #ffffff;
+  border-color: #e5ddd4;
+  color: #1c1917;
+}
+
+.dashboard .habit-card:hover {
+  background: #faf7f3;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  transform: translateY(-2px);
+}
+
+.dashboard .btn-primary {
+  background: #c4573d;
+  box-shadow: none;
+}
+
+.dashboard .btn-primary:hover {
+  background: #b34e37;
+  box-shadow: none;
+}
+
+.dashboard .btn-ghost {
+  border-color: #e5ddd4;
+  color: #78716c;
+}
+
+.dashboard .btn-ghost:hover {
+  color: #1c1917;
+  background: #f5f0eb;
+  border-color: #d6cec5;
 }

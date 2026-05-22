@@ -18,9 +18,9 @@ import { toISODate, todayISO, pct } from '@/lib/utils'
 import HabitModal from './HabitModal'
 import { createClient } from '@/lib/supabase/client'
 
-const ACCENT = '#E94560'
-const CYAN   = '#22d3ee'
-const PINK   = '#f472b6'
+const ACCENT = '#c4573d'
+const CYAN   = '#2563eb'
+const PINK   = '#b45309'
 
 // ── Props / state types ───────────────────────────────────────────────
 interface Props {
@@ -228,9 +228,9 @@ function HabitSection({
     <section>
       {/* Section header */}
       <div className="flex items-baseline gap-3 mb-5">
-        <h2 className="font-display text-2xl text-white">{title}</h2>
+        <h2 className="font-display text-2xl" style={{ color: '#1c1917' }}>{title}</h2>
         {habits.length > 0 && (
-          <span className="text-muted text-xs font-mono">
+          <span className="text-xs font-mono" style={{ color: '#a8a29e' }}>
             {habits.length} habit{habits.length !== 1 ? 's' : ''} · {avgRate}% avg
           </span>
         )}
@@ -322,7 +322,7 @@ function HabitCard({
         </button>
 
         {/* Habit name */}
-        <span className="text-sm text-gray-200 font-medium flex-1 truncate">{habit.name}</span>
+        <span className="text-sm font-medium flex-1 truncate" style={{ color: '#1c1917' }}>{habit.name}</span>
 
         {/* Edit / delete — visible on hover */}
         <div className="opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity duration-150 flex-shrink-0">
@@ -361,12 +361,12 @@ function HabitCard({
                 className="flex flex-col items-center flex-shrink-0 active:scale-90 transition-transform duration-100"
                 style={{ gap: 2, opacity: fut ? 0.2 : 1, cursor: fut ? 'default' : 'pointer' }}
               >
-                <span style={{ fontSize: 8, lineHeight: 1, fontFamily: 'monospace', color: isT ? CYAN : '#374151' }}>
+                <span style={{ fontSize: 8, lineHeight: 1, fontFamily: 'monospace', color: isT ? CYAN : '#a8a29e' }}>
                   {d}
                 </span>
                 <div style={{
                   width: 20, height: 20, borderRadius: 5, flexShrink: 0,
-                  border:     `1px solid ${tick ? ACCENT : isT ? CYAN + '55' : '#1E2D4E'}`,
+                  border:     `1px solid ${tick ? ACCENT : isT ? CYAN + '55' : '#e5ddd4'}`,
                   background: tick ? ACCENT + '22' : 'transparent',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   transition: 'all 0.15s',
@@ -395,7 +395,7 @@ function HabitCard({
             const lkey = `${habit.id}__${date}`
             return (
               <div key={wk} className="flex flex-col items-center gap-1.5">
-                <span style={{ fontSize: 9, color: '#4B5563', fontFamily: 'monospace', letterSpacing: '0.05em' }}>
+                <span style={{ fontSize: 9, color: '#a8a29e', fontFamily: 'monospace', letterSpacing: '0.05em' }}>
                   W{wk}
                 </span>
                 <button
@@ -403,7 +403,7 @@ function HabitCard({
                   disabled={fut || loading === lkey}
                   style={{
                     width: 36, height: 36, borderRadius: 8,
-                    border:     `1px solid ${tick ? ACCENT : '#1E2D4E'}`,
+                    border:     `1px solid ${tick ? ACCENT : '#e5ddd4'}`,
                     background: tick ? ACCENT + '20' : 'transparent',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     cursor: fut ? 'default' : 'pointer',
@@ -426,7 +426,7 @@ function HabitCard({
             )
           })}
 
-          <div className="ml-auto text-xs font-mono" style={{ color: '#4B5563' }}>
+          <div className="ml-auto text-xs font-mono" style={{ color: '#a8a29e' }}>
             {done}/{habit.goal} this month
           </div>
         </div>
@@ -456,7 +456,7 @@ function DeleteConfirmModal({ name, onConfirm, onCancel }: {
           </svg>
         </div>
 
-        <h3 className="font-display text-xl text-white mb-2">Remove habit?</h3>
+        <h3 className="font-display text-xl mb-2" style={{ color: '#1c1917' }}>Remove habit?</h3>
         <p className="text-muted text-sm mb-6 leading-relaxed">
           <span className="text-subtle font-medium">&ldquo;{name}&rdquo;</span> and all its
           completion history will be permanently deleted.
@@ -501,7 +501,7 @@ function Ring({ value, max, id, size = 44 }: {
             <stop offset="100%" stopColor={PINK}   />
           </linearGradient>
         </defs>
-        <circle cx={cx} cy={cx} r={r} fill="none" stroke="#1E2D4E" strokeWidth={sw} />
+        <circle cx={cx} cy={cx} r={r} fill="none" stroke="#e5ddd4" strokeWidth={sw} />
         {fill > 0 && (
           <circle
             cx={cx} cy={cx} r={r} fill="none"
@@ -515,7 +515,7 @@ function Ring({ value, max, id, size = 44 }: {
         )}
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontSize: 9, fontFamily: 'monospace', fontWeight: 600, color: fill > 0 ? CYAN : '#374151' }}>
+        <span style={{ fontSize: 9, fontFamily: 'monospace', fontWeight: 600, color: fill > 0 ? ACCENT : '#a8a29e' }}>
           {rate}%
         </span>
       </div>

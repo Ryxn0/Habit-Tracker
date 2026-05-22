@@ -1,29 +1,3 @@
-import Link from 'next/link'
-import DashboardNav from '@/components/ui/DashboardNav'
-
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen flex flex-col">
-      {/* Top nav */}
-      <nav className="sticky top-0 z-50 backdrop-blur" style={{ background: 'rgba(9,16,30,0.92)', borderBottom: '1px solid rgba(30,45,78,0.8)', boxShadow: '0 1px 0 rgba(233,69,96,0.04), 0 4px 24px rgba(0,0,0,0.25)' }}>
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
-          <Link href="/dashboard" style={{ fontFamily: 'monospace', fontSize: 14, fontWeight: 700, letterSpacing: '0.15em', color: '#fff' }}
-            className="hover:text-[#22d3ee] transition-colors"
-          >
-            ASIRYX
-          </Link>
-          <DashboardNav />
-        </div>
-      </nav>
-
-      {/* Page content */}
-      <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-10">
-        {children}
-      </main>
-
-      <footer className="border-t border-border px-6 py-4 text-center text-muted text-xs">
-        Asiryx · Make every day count.
-      </footer>
-    </div>
-  )
+  return <div className="dashboard">{children}</div>
 }

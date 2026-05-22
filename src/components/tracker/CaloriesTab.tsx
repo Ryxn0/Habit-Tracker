@@ -9,10 +9,10 @@ import {
   ResponsiveContainer, Cell,
 } from 'recharts'
 
-const ACCENT = '#E94560'
-const CYAN   = '#22d3ee'
-const PINK   = '#f472b6'
-const ORANGE = '#fb923c'
+const ACCENT = '#c4573d'
+const CYAN   = '#2563eb'
+const PINK   = '#b45309'
+const ORANGE = '#d97706'
 
 const MEALS: { type: MealType; label: string; icon: string }[] = [
   { type: 'breakfast', label: 'Breakfast', icon: '☀️'  },
@@ -130,22 +130,22 @@ export default function CaloriesTab({ userId }: Props) {
   const pctDone      = Math.min(100, Math.round((totalCals / calGoal) * 100))
   const over         = totalCals > calGoal
 
-  const inputCls = 'bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-white placeholder:text-zinc-600 focus:outline-none focus:border-blue-400/60 text-sm'
+  const inputCls = 'bg-white border border-[#e5ddd4] rounded-xl px-4 py-2.5 text-[#1c1917] placeholder:text-[#a8a29e] focus:outline-none focus:border-[#c4573d]/60 text-sm'
 
   return (
     <div className="space-y-5 animate-fade-in">
 
       {/* ── Calorie overview card ──────────────────────────────────── */}
-      <div className="rounded-xl p-5" style={{ background: '#141E33', border: '1px solid #1E2D4E' }}>
+      <div className="rounded-xl p-5" style={{ background: '#ffffff', border: '1px solid #e5ddd4' }}>
 
         <div className="flex items-start justify-between mb-4">
           <div>
-            <span className="text-xs font-mono uppercase tracking-widest" style={{ color: '#4B5563' }}>
+            <span className="text-xs font-mono uppercase tracking-widest" style={{ color: '#a8a29e' }}>
               Today's Calories
             </span>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="font-display text-4xl text-white">{totalCals.toLocaleString()}</span>
-              <span className="text-sm" style={{ color: '#4B5563' }}>/ {calGoal.toLocaleString()}</span>
+              <span className="font-display text-4xl" style={{ color: '#1c1917' }}>{totalCals.toLocaleString()}</span>
+              <span className="text-sm" style={{ color: '#a8a29e' }}>/ {calGoal.toLocaleString()}</span>
               {over && (
                 <span className="text-xs font-mono px-2 py-0.5 rounded-full"
                   style={{ background: 'rgba(233,69,96,0.12)', color: ACCENT, border: '1px solid rgba(233,69,96,0.25)' }}>
@@ -160,25 +160,25 @@ export default function CaloriesTab({ userId }: Props) {
               <input
                 type="number" value={goalInput} min={500} max={10000}
                 onChange={e => setGoalInput(e.target.value)}
-                className="w-24 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-blue-400/60"
+                className="w-24 bg-white border border-[#e5ddd4] rounded-lg px-3 py-1.5 text-[#1c1917] text-sm focus:outline-none focus:border-[#c4573d]/60"
               />
               <button onClick={saveGoal}
                 className="text-xs px-3 py-1.5 rounded-lg font-semibold transition-all active:scale-95"
                 style={{ background: ACCENT, color: '#fff' }}>
                 Save
               </button>
-              <button onClick={() => setEditGoal(false)} className="text-xs text-muted hover:text-white transition-colors">✕</button>
+              <button onClick={() => setEditGoal(false)} className="text-xs transition-colors" style={{ color: '#a8a29e' }}>✕</button>
             </div>
           ) : (
             <button onClick={() => setEditGoal(true)}
-              className="text-xs text-muted hover:text-white transition-colors mt-1">
+              className="text-xs transition-colors mt-1" style={{ color: '#a8a29e' }}>
               Edit goal
             </button>
           )}
         </div>
 
         {/* Progress bar */}
-        <div className="h-2 rounded-full overflow-hidden mb-4" style={{ background: '#1E2D4E' }}>
+        <div className="h-2 rounded-full overflow-hidden mb-4" style={{ background: '#e5ddd4' }}>
           <div
             className="h-full rounded-full transition-all duration-500"
             style={{
@@ -193,7 +193,7 @@ export default function CaloriesTab({ userId }: Props) {
         {/* Remaining + macros */}
         <div className="grid grid-cols-4 gap-3">
           <div className="text-center">
-            <div className="text-xs font-mono mb-1" style={{ color: '#4B5563' }}>Remaining</div>
+            <div className="text-xs font-mono mb-1" style={{ color: '#a8a29e' }}>Remaining</div>
             <div className="font-display text-xl" style={{ color: over ? ACCENT : '#4ade80' }}>
               {remaining.toLocaleString()}
               <span className="text-xs text-muted ml-0.5">kcal</span>
@@ -205,7 +205,7 @@ export default function CaloriesTab({ userId }: Props) {
             { label: 'Fat',     value: totalFat,     color: ORANGE },
           ].map(m => (
             <div key={m.label} className="text-center">
-              <div className="text-xs font-mono mb-1" style={{ color: '#4B5563' }}>{m.label}</div>
+              <div className="text-xs font-mono mb-1" style={{ color: '#a8a29e' }}>{m.label}</div>
               <div className="font-display text-xl" style={{ color: m.color }}>
                 {Math.round(m.value)}
                 <span className="text-xs text-muted ml-0.5">g</span>
@@ -216,29 +216,29 @@ export default function CaloriesTab({ userId }: Props) {
       </div>
 
       {/* ── Weekly bar chart ───────────────────────────────────────── */}
-      <div className="rounded-xl p-5" style={{ background: '#141E33', border: '1px solid #1E2D4E' }}>
+      <div className="rounded-xl p-5" style={{ background: '#ffffff', border: '1px solid #e5ddd4' }}>
         <div className="flex items-center justify-between mb-4">
-          <span className="text-xs font-mono uppercase tracking-widest" style={{ color: '#4B5563' }}>
+          <span className="text-xs font-mono uppercase tracking-widest" style={{ color: '#a8a29e' }}>
             7-Day Overview
           </span>
-          <span className="text-xs font-mono" style={{ color: '#4B5563' }}>
+          <span className="text-xs font-mono" style={{ color: '#a8a29e' }}>
             Goal: {calGoal.toLocaleString()} kcal
           </span>
         </div>
         <div style={{ height: 130 }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={weekData} barSize={28} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-              <XAxis dataKey="day" tick={{ fill: '#4B5563', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <XAxis dataKey="day" tick={{ fill: '#a8a29e', fontSize: 10 }} axisLine={false} tickLine={false} />
               <YAxis hide />
               <Tooltip
-                contentStyle={{ background: '#0F1829', border: '1px solid #1E2D4E', borderRadius: 8, fontSize: 12 }}
-                labelStyle={{ color: '#9CA3AF' }}
+                contentStyle={{ background: '#fff', border: '1px solid #e5ddd4', borderRadius: 8, fontSize: 12 }}
+                labelStyle={{ color: '#78716c' }}
                 cursor={{ fill: 'rgba(255,255,255,0.03)' }}
                 formatter={(v) => [`${Number(v).toLocaleString()} kcal`, '']}
               />
               <Bar dataKey="cals" radius={[4, 4, 0, 0]}>
                 {weekData.map((d, i) => (
-                  <Cell key={i} fill={i === weekData.length - 1 ? ACCENT : '#1E2D4E'} />
+                  <Cell key={i} fill={i === weekData.length - 1 ? ACCENT : '#e5ddd4'} />
                 ))}
               </Bar>
             </BarChart>
@@ -249,11 +249,11 @@ export default function CaloriesTab({ userId }: Props) {
       {/* ── Food log ──────────────────────────────────────────────── */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <span className="font-display text-xl text-white">Food Log</span>
+          <span className="font-display text-xl" style={{ color: '#1c1917' }}>Food Log</span>
           <button
             onClick={() => setShowForm(v => !v)}
             className="text-sm px-4 py-2 rounded-lg font-semibold transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
-            style={{ background: showForm ? '#1E2D4E' : ACCENT, color: '#fff' }}
+            style={{ background: showForm ? '#e5ddd4' : ACCENT, color: showForm ? '#78716c' : '#fff' }}
           >
             {showForm ? 'Cancel' : '+ Add food'}
           </button>
@@ -262,7 +262,7 @@ export default function CaloriesTab({ userId }: Props) {
         {/* Add food form */}
         {showForm && (
           <form onSubmit={addEntry} className="rounded-xl p-4 mb-4 space-y-3 animate-slide-up"
-            style={{ background: '#141E33', border: '1px solid #1E2D4E' }}>
+            style={{ background: '#ffffff', border: '1px solid #e5ddd4' }}>
 
             {/* Meal type pills */}
             <div className="flex gap-2 flex-wrap">
@@ -272,8 +272,8 @@ export default function CaloriesTab({ userId }: Props) {
                   className="flex-1 min-w-[80px] py-2 rounded-lg text-xs font-semibold transition-all duration-150"
                   style={{
                     background: form.meal_type === m.type ? ACCENT + '20' : 'transparent',
-                    border:     `1px solid ${form.meal_type === m.type ? ACCENT : '#1E2D4E'}`,
-                    color:      form.meal_type === m.type ? ACCENT : '#4B5563',
+                    border:     `1px solid ${form.meal_type === m.type ? ACCENT : '#e5ddd4'}`,
+                    color:      form.meal_type === m.type ? ACCENT : '#a8a29e',
                   }}>
                   {m.icon} {m.label}
                 </button>
@@ -323,8 +323,8 @@ export default function CaloriesTab({ userId }: Props) {
                 <div key={m.type}>
                   <div className="flex items-center gap-2 mb-2 px-1">
                     <span>{m.icon}</span>
-                    <span className="text-sm font-semibold text-white">{m.label}</span>
-                    <span className="text-xs font-mono" style={{ color: '#4B5563' }}>
+                    <span className="text-sm font-semibold" style={{ color: '#1c1917' }}>{m.label}</span>
+                    <span className="text-xs font-mono" style={{ color: '#a8a29e' }}>
                       {mealCals.toLocaleString()} kcal
                     </span>
                   </div>
@@ -332,10 +332,10 @@ export default function CaloriesTab({ userId }: Props) {
                     {mealEntries.map(entry => (
                       <div key={entry.id}
                         className="flex items-center justify-between px-4 py-3 rounded-xl group"
-                        style={{ background: '#141E33', border: '1px solid #1E2D4E' }}>
+                        style={{ background: '#ffffff', border: '1px solid #e5ddd4' }}>
                         <div>
-                          <span className="text-sm text-gray-200">{entry.food_name}</span>
-                          <div className="text-xs mt-0.5" style={{ color: '#4B5563' }}>
+                          <span className="text-sm" style={{ color: '#1c1917' }}>{entry.food_name}</span>
+                          <div className="text-xs mt-0.5" style={{ color: '#a8a29e' }}>
                             P:{Math.round(Number(entry.protein))}g &nbsp;
                             C:{Math.round(Number(entry.carbs))}g &nbsp;
                             F:{Math.round(Number(entry.fat))}g
