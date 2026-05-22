@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { DM_Serif_Display, Inter, DM_Mono } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
 const display = DM_Serif_Display({
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable} dark`}>
       <body className="bg-bg text-white font-body antialiased min-h-screen">
         {children}
+        <Analytics />
       </body>
     </html>
   )
