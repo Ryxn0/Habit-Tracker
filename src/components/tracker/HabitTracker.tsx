@@ -3,6 +3,16 @@
 import { useState, useCallback } from 'react'
 import type { ReactNode } from 'react'
 import { getDaysInMonth } from 'date-fns'
+import {
+  DndContext, PointerSensor, TouchSensor,
+  useSensor, useSensors, closestCenter,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext, useSortable,
+  verticalListSortingStrategy, arrayMove,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import type { Habit, Completion, HabitType } from '@/types'
 import { toISODate, todayISO, pct } from '@/lib/utils'
 import HabitModal from './HabitModal'
@@ -137,8 +147,16 @@ export default function HabitTracker({
 
   return (
     <div className="space-y-14">
-      <HabitSection title="Daily Habits"  type="daily"  habits={dailyHabits}  onAdd={() => openAdd('daily')}  {...shared} />
-      <HabitSection title="Weekly Habits" type="weekly" habits={weeklyHabits} onAdd={() => openAdd('weekly')} {...shared} />
+      <HabitSection
+        title="Daily Habits" type="daily" habits={dailyHabits}
+        onAdd={() => openAdd('daily')} onReorder={setDailyHabits}
+        {...shared}
+      />
+      <HabitSection
+        title="Weekly Habits" type="weekly" habits={weeklyHabits}
+        onAdd={() => openAdd('weekly')} onReorder={setWeeklyHabits}
+        {...shared}
+      />
 
       {modal.open && (
         <HabitModal
@@ -174,15 +192,37 @@ interface SectionProps {
   getStreak:   (id: string) => number
   toggle:      (id: string, date: string) => void
   loading:     string | null
-  onAdd:    () => void
-  onEdit:   (h: Habit) => void
-  onDelete: (h: Habit) => void
+  onAdd:     () => void
+  onEdit:    (h: Habit) => void
+  onDelete:  (h: Habit) => void
+  onReorder: (habits: Habit[]) => void
 }
 
-function HabitSection({ title, type, habits, onAdd, countDone, ...rest }: SectionProps) {
+function HabitSection({
+  title, type, habits, onAdd, onReorder, countDone, ...rest
+}: SectionProps) {
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor,   { activationConstraint: { delay: 250, tolerance: 5 } }),
+  )
+
   const avgRate = habits.length > 0
     ? Math.round(habits.reduce((s, h) => s + pct(countDone(h.id), h.goal), 0) / habits.length)
     : 0
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const oldIdx   = habits.findIndex(h => h.id === active.id)
+    const newIdx   = habits.findIndex(h => h.id === over.id)
+    const reordered = arrayMove(habits, oldIdx, newIdx)
+    onReorder(reordered)
+    fetch('/api/habits/reorder', {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ ids: reordered.map(h => h.id) }),
+    })
+  }
 
   return (
     <section>
@@ -195,10 +235,7 @@ function HabitSection({ title, type, habits, onAdd, countDone, ...rest }: Sectio
           </span>
         )}
         <div className="flex-1 h-px bg-border mx-1" style={{ alignSelf: 'center' }} />
-        <button
-          onClick={onAdd}
-          className="btn-primary text-sm px-5 py-2"
-        >
+        <button onClick={onAdd} className="btn-primary text-sm px-5 py-2">
           + Add habit
         </button>
       </div>
@@ -212,11 +249,15 @@ function HabitSection({ title, type, habits, onAdd, countDone, ...rest }: Sectio
           </button>
         </div>
       ) : (
-        <div className="space-y-2">
-          {habits.map((h, i) => (
-            <HabitCard key={h.id} habit={h} type={type} countDone={countDone} index={i} {...rest} />
-          ))}
-        </div>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={habits.map(h => h.id)} strategy={verticalListSortingStrategy}>
+            <div className="space-y-2">
+              {habits.map((h, i) => (
+                <HabitCard key={h.id} habit={h} type={type} countDone={countDone} index={i} {...rest} />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       )}
     </section>
   )
@@ -246,18 +287,40 @@ function HabitCard({
   isCompleted, countDone, getStreak, toggle, loading,
   onEdit, onDelete,
 }: CardProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: habit.id })
+
   const done   = countDone(habit.id)
   const rate   = pct(done, habit.goal)
   const streak = getStreak(habit.id)
 
+  const cardStyle = {
+    transform:      CSS.Transform.toString(transform),
+    transition,
+    opacity:        isDragging ? 0.5 : 1,
+    zIndex:         isDragging ? 20 : undefined,
+    animationDelay: `${index * 55}ms`,
+  }
+
   return (
     <div
+      ref={setNodeRef}
+      style={cardStyle}
       className="group habit-card animate-slide-up"
-      style={{ animationDelay: `${index * 55}ms` }}
     >
-
       {/* ── Header row ── */}
       <div className="flex items-center gap-3 mb-3">
+
+        {/* Drag handle */}
+        <button
+          {...attributes} {...listeners}
+          title="Drag to reorder"
+          className="flex-shrink-0 text-muted opacity-30 group-hover:opacity-60 hover:!opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
+          style={{ touchAction: 'none', padding: '2px 4px', background: 'none', border: 'none' }}
+        >
+          <DragIcon />
+        </button>
+
         {/* Habit name */}
         <span className="text-sm text-gray-200 font-medium flex-1 truncate">{habit.name}</span>
 
@@ -298,15 +361,12 @@ function HabitCard({
                 className="flex flex-col items-center flex-shrink-0 active:scale-90 transition-transform duration-100"
                 style={{ gap: 2, opacity: fut ? 0.2 : 1, cursor: fut ? 'default' : 'pointer' }}
               >
-                <span style={{
-                  fontSize: 8, lineHeight: 1, fontFamily: 'monospace',
-                  color: isT ? CYAN : '#374151',
-                }}>
+                <span style={{ fontSize: 8, lineHeight: 1, fontFamily: 'monospace', color: isT ? CYAN : '#374151' }}>
                   {d}
                 </span>
                 <div style={{
                   width: 20, height: 20, borderRadius: 5, flexShrink: 0,
-                  border: `1px solid ${tick ? ACCENT : isT ? CYAN + '55' : '#1E2D4E'}`,
+                  border:     `1px solid ${tick ? ACCENT : isT ? CYAN + '55' : '#1E2D4E'}`,
                   background: tick ? ACCENT + '22' : 'transparent',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   transition: 'all 0.15s',
@@ -343,7 +403,7 @@ function HabitCard({
                   disabled={fut || loading === lkey}
                   style={{
                     width: 36, height: 36, borderRadius: 8,
-                    border: `1px solid ${tick ? ACCENT : '#1E2D4E'}`,
+                    border:     `1px solid ${tick ? ACCENT : '#1E2D4E'}`,
                     background: tick ? ACCENT + '20' : 'transparent',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     cursor: fut ? 'default' : 'pointer',
@@ -388,11 +448,11 @@ function DeleteConfirmModal({ name, onConfirm, onCancel }: {
       onClick={e => { if (e.target === e.currentTarget) onCancel() }}
     >
       <div className="card w-full max-w-sm animate-slide-up text-center">
-        {/* Icon */}
         <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4"
           style={{ background: '#E9456015', border: '1px solid #E9456030' }}>
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M8.5 4h3M3 6h14M5.5 6l.9 10.1A1 1 0 007.4 17h5.2a1 1 0 001-.9L14.5 6" stroke="#E94560" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M8.5 4h3M3 6h14M5.5 6l.9 10.1A1 1 0 007.4 17h5.2a1 1 0 001-.9L14.5 6"
+              stroke="#E94560" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
 
@@ -403,9 +463,7 @@ function DeleteConfirmModal({ name, onConfirm, onCancel }: {
         </p>
 
         <div className="flex gap-3">
-          <button onClick={onCancel} className="btn-ghost flex-1">
-            Cancel
-          </button>
+          <button onClick={onCancel} className="btn-ghost flex-1">Cancel</button>
           <button
             onClick={onConfirm}
             className="flex-1 py-3 rounded-lg font-semibold text-sm transition-all duration-200 active:scale-95"
@@ -421,21 +479,18 @@ function DeleteConfirmModal({ name, onConfirm, onCancel }: {
   )
 }
 
-// ── Ring — SVG circular progress indicator ────────────────────────────
+// ── Ring ──────────────────────────────────────────────────────────────
 
 function Ring({ value, max, id, size = 44 }: {
-  value: number
-  max:   number
-  id:    string
-  size?: number
+  value: number; max: number; id: string; size?: number
 }) {
-  const sw      = 4
-  const r       = (size - sw * 2) / 2
-  const circ    = 2 * Math.PI * r
-  const fill    = max > 0 ? Math.min(value / max, 1) : 0
-  const rate    = Math.round(fill * 100)
-  const cx      = size / 2
-  const gradId  = `rg-${id}`
+  const sw     = 4
+  const r      = (size - sw * 2) / 2
+  const circ   = 2 * Math.PI * r
+  const fill   = max > 0 ? Math.min(value / max, 1) : 0
+  const rate   = Math.round(fill * 100)
+  const cx     = size / 2
+  const gradId = `rg-${id}`
 
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
@@ -446,13 +501,10 @@ function Ring({ value, max, id, size = 44 }: {
             <stop offset="100%" stopColor={PINK}   />
           </linearGradient>
         </defs>
-        {/* Track */}
         <circle cx={cx} cy={cx} r={r} fill="none" stroke="#1E2D4E" strokeWidth={sw} />
-        {/* Arc */}
         {fill > 0 && (
           <circle
-            cx={cx} cy={cx} r={r}
-            fill="none"
+            cx={cx} cy={cx} r={r} fill="none"
             stroke={`url(#${gradId})`}
             strokeWidth={sw}
             strokeDasharray={circ}
@@ -462,11 +514,7 @@ function Ring({ value, max, id, size = 44 }: {
           />
         )}
       </svg>
-      {/* Centre label */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <span style={{ fontSize: 9, fontFamily: 'monospace', fontWeight: 600, color: fill > 0 ? CYAN : '#374151' }}>
           {rate}%
         </span>
@@ -475,18 +523,14 @@ function Ring({ value, max, id, size = 44 }: {
   )
 }
 
-// ── Btn — small icon button ───────────────────────────────────────────
+// ── Btn ───────────────────────────────────────────────────────────────
 
 function Btn({ onClick, title, danger, children }: {
-  onClick:  () => void
-  title:    string
-  danger?:  boolean
-  children: ReactNode
+  onClick: () => void; title: string; danger?: boolean; children: ReactNode
 }) {
   return (
     <button
-      onClick={onClick}
-      title={title}
+      onClick={onClick} title={title}
       className="w-9 h-9 flex items-center justify-center rounded text-muted hover:text-white transition-all duration-150 hover:scale-125 active:scale-95"
       style={{ fontSize: 17, background: 'none', border: 'none', cursor: 'pointer' }}
       onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = danger ? '#f87171' : '#fff' }}
@@ -494,5 +538,20 @@ function Btn({ onClick, title, danger, children }: {
     >
       {children}
     </button>
+  )
+}
+
+// ── DragIcon ──────────────────────────────────────────────────────────
+
+function DragIcon() {
+  return (
+    <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
+      <circle cx="3" cy="2.5" r="1.2" />
+      <circle cx="7" cy="2.5" r="1.2" />
+      <circle cx="3" cy="7"   r="1.2" />
+      <circle cx="7" cy="7"   r="1.2" />
+      <circle cx="3" cy="11.5" r="1.2" />
+      <circle cx="7" cy="11.5" r="1.2" />
+    </svg>
   )
 }
