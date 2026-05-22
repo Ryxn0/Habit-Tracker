@@ -1,3 +1,5 @@
+const { default: flattenColorPalette } = require("tailwindcss/lib/util/flattenColorPalette");
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -5,6 +7,7 @@ module.exports = {
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
@@ -32,6 +35,7 @@ module.exports = {
         'pop':        'pop 0.3s cubic-bezier(0.34,1.56,0.64,1) both',
         'glow-pulse': 'glowPulse 2.5s ease-in-out infinite',
         'float':      'float 3s ease-in-out infinite',
+        'aurora':     'aurora 60s linear infinite',
       },
       keyframes: {
         fadeIn:    { from: { opacity: 0 }, to: { opacity: 1 } },
@@ -41,8 +45,20 @@ module.exports = {
         pop:       { from: { transform: 'scale(0.5)', opacity: '0' }, '65%': { transform: 'scale(1.2)' }, to: { transform: 'scale(1)', opacity: '1' } },
         glowPulse: { '0%,100%': { boxShadow: '0 0 0px rgba(233,69,96,0)' }, '50%': { boxShadow: '0 0 18px rgba(233,69,96,0.45)' } },
         float:     { '0%,100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-4px)' } },
+        aurora: {
+          from: { backgroundPosition: '50% 50%, 50% 50%' },
+          to:   { backgroundPosition: '350% 50%, 350% 50%' },
+        },
       },
     },
   },
-  plugins: [],
+  plugins: [addVariablesForColors],
+};
+
+function addVariablesForColors({ addBase, theme }: any) {
+  const allColors = flattenColorPalette(theme("colors"));
+  const newVars = Object.fromEntries(
+    Object.entries(allColors).map(([key, val]) => [`--${key}`, val])
+  );
+  addBase({ ":root": newVars });
 }
