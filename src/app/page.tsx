@@ -3,6 +3,7 @@
 import { motion } from "motion/react"
 import { Circle } from "lucide-react"
 import { BeamsBackground } from "@/components/ui/beams-background"
+import Link from "next/link"
 
 export default function HomePage() {
   const fadeUp = {
@@ -16,6 +17,17 @@ export default function HomePage() {
 
   return (
     <main>
+      {/* ── Nav ── */}
+      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-4 bg-transparent">
+        <span className="font-display text-xl text-white/90" style={{ fontFamily: 'var(--font-display)' }}>
+          asiryx<span style={{ color: '#E94560' }}>.</span>
+        </span>
+        <div className="flex items-center gap-6">
+          <Link href="/about" className="text-sm text-white/50 hover:text-white/80 transition-colors">About</Link>
+          <Link href="/auth/login" className="text-sm text-white/50 hover:text-white/80 transition-colors">Sign in</Link>
+        </div>
+      </nav>
+
       {/* ── Hero ── */}
       <BeamsBackground intensity="strong">
         <div className="flex min-h-screen flex-col items-center justify-center text-center px-6">
