@@ -33,7 +33,7 @@ export default function LoginPage() {
           {/* Mobile-only logo */}
           <div className="lg:hidden text-center mb-10">
             <Link href="/" className="font-display text-3xl text-white hover:text-accent transition-colors">
-              Stackd
+              Asiryx
             </Link>
           </div>
 
@@ -98,7 +98,7 @@ function BrandPanel() {
       <div style={{ position: 'absolute', bottom: -80, left: -60, width: 260, height: 260, borderRadius: '50%', background: '#22d3ee', opacity: 0.05, filter: 'blur(80px)', pointerEvents: 'none' }} />
 
       <Link href="/" className="font-display text-2xl text-white hover:text-accent transition-colors inline-block">
-        Stackd
+        Asiryx
       </Link>
 
       <div>

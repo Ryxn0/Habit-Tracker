@@ -10,7 +10,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <Link href="/dashboard" style={{ fontFamily: 'monospace', fontSize: 14, fontWeight: 700, letterSpacing: '0.15em', color: '#fff' }}
             className="hover:text-[#22d3ee] transition-colors"
           >
-            STACKD
+            ASIRYX
           </Link>
           <DashboardNav />
         </div>
@@ -22,7 +22,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </main>
 
       <footer className="border-t border-border px-6 py-4 text-center text-muted text-xs">
-        Stackd · Make every day count.
+        Asiryx · Make every day count.
       </footer>
     </div>
   )

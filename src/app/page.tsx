@@ -7,7 +7,7 @@ export default function HomePage() {
       {/* Nav */}
       <nav className="flex items-center justify-between px-8 py-6 border-b border-border">
         <span className="font-display text-2xl text-white tracking-tight">
-          Stackd
+          Asiryx
         </span>
         <NavMenu />
       </nav>
@@ -67,7 +67,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="border-t border-border px-8 py-6 text-center text-muted text-sm">
-        Stackd · Make every day count.
+        Asiryx · Make every day count.
       </footer>
     </main>
   )
