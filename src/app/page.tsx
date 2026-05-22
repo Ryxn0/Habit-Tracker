@@ -3,20 +3,22 @@
 import { motion } from "motion/react"
 import { Circle } from "lucide-react"
 import { BeamsBackground } from "@/components/ui/beams-background"
+import { ContainerScroll } from "@/components/ui/container-scroll-animation"
+import Image from "next/image"
 import Link from "next/link"
 
-export default function HomePage() {
-  const fadeUp = {
-    hidden:  { opacity: 0, y: 30 },
-    visible: (i: number) => ({
-      opacity: 1,
-      y: 0,
-      transition: { duration: 1, delay: 0.4 + i * 0.2, ease: [0.25, 0.4, 0.25, 1] as [number,number,number,number] },
-    }),
-  }
+const fadeUp = {
+  hidden:  { opacity: 0, y: 30 },
+  visible: (i: number) => ({
+    opacity: 1, y: 0,
+    transition: { duration: 1, delay: 0.4 + i * 0.2, ease: [0.25, 0.4, 0.25, 1] as [number, number, number, number] },
+  }),
+}
 
+export default function HomePage() {
   return (
-    <main>
+    <main className="dark bg-[#060910]">
+
       {/* ── Nav ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-4 bg-transparent">
         <span className="font-display text-xl text-white/90" style={{ fontFamily: 'var(--font-display)' }}>
@@ -73,6 +75,40 @@ export default function HomePage() {
           </motion.div>
         </div>
       </BeamsBackground>
+
+      {/* ── Scroll animation preview ── */}
+      <section className="bg-[#060910]">
+        <ContainerScroll
+          titleComponent={
+            <div className="space-y-4">
+              <p className="text-xs font-mono uppercase tracking-[0.2em] text-white/30">
+                See it in action
+              </p>
+              <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight">
+                <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-white/70">
+                  Everything you need.
+                </span>
+                <br />
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 via-white/80 to-rose-300">
+                  Nothing you don&apos;t.
+                </span>
+              </h2>
+              <p className="text-white/40 text-base sm:text-lg max-w-xl mx-auto leading-relaxed font-light">
+                Habits, calories, workouts — tracked in one place. Clean, fast, and private.
+              </p>
+            </div>
+          }
+        >
+          <Image
+            src="/dashboard-preview.png"
+            alt="asiryx dashboard"
+            width={1400}
+            height={800}
+            className="mx-auto rounded-xl object-cover h-full object-top"
+            draggable={false}
+          />
+        </ContainerScroll>
+      </section>
 
       {/* ── Features ── */}
       <section className="border-t border-white/[0.06] px-8 py-20 bg-neutral-950">
