@@ -158,7 +158,7 @@ function HeroGeometric({
                     >
                         <a
                             href="/dashboard"
-                            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-semibold text-sm tracking-wide text-white transition-all duration-200 hover:brightness-110 active:scale-95"
+                            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-semibold text-sm tracking-wide text-white transition-all duration-200 hover:-translate-y-1.5 hover:brightness-110 active:scale-95"
                             style={{
                                 background: 'linear-gradient(135deg, #E94560, #9b2335)',
                                 boxShadow: '0 0 24px rgba(233,69,96,0.35)',
@@ -168,7 +168,7 @@ function HeroGeometric({
                         </a>
                         <a
                             href="/auth/login"
-                            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full text-sm text-white/50 border border-white/[0.08] hover:text-white/80 hover:border-white/20 transition-all duration-200"
+                            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full text-sm text-white/50 border border-white/[0.08] hover:text-white/80 hover:border-white/20 hover:-translate-y-1.5 transition-all duration-200"
                         >
                             Sign in
                         </a>
