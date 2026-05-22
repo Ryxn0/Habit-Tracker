@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { DM_Serif_Display, Inter, DM_Mono } from 'next/font/google'
+import { DM_Serif_Display, Inter, DM_Mono, Sora, Hanken_Grotesk } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import Script from 'next/script'
 import './globals.css'
@@ -21,6 +21,18 @@ const mono = DM_Mono({
   variable: '--font-mono',
 })
 
+const sora = Sora({
+  weight: ['400', '600', '700', '800'],
+  subsets: ['latin'],
+  variable: '--font-sora',
+})
+
+const hanken = Hanken_Grotesk({
+  weight: ['400', '500', '600', '700'],
+  subsets: ['latin'],
+  variable: '--font-hanken',
+})
+
 export const metadata: Metadata = {
   title: 'Asiryx — Habit Tracker',
   description: 'Small actions. Big results. Track your daily and weekly habits.',
@@ -28,7 +40,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable} dark`}>
+    <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable} ${sora.variable} ${hanken.variable} dark`}>
       <body className="bg-bg text-white font-body antialiased min-h-screen">
         {children}
         <Analytics />

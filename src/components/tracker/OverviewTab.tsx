@@ -3,26 +3,23 @@
 import { useState, useEffect, useMemo } from 'react'
 import { getDaysInMonth } from 'date-fns'
 import { createClient } from '@/lib/supabase/client'
-import { todayISO, toISODate, pct, monthName } from '@/lib/utils'
+import { todayISO, toISODate, pct } from '@/lib/utils'
 import type { Habit, Completion } from '@/types'
-import {
-  LineChart, Line, BarChart, Bar,
-  XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
-} from 'recharts'
 import Link from 'next/link'
+import Modal from './Modal'
+import {
+  ArrowRight, BookOpen, Edit3, Flame, Sparkles, Calendar,
+} from 'lucide-react'
 
 type Tab = 'overview' | 'habits' | 'calories' | 'gym'
 
-const ACCENT  = '#E94560'
-const TEXT    = '#ffffff'
-const SUBTLE  = '#9CA3AF'
-const MUTED   = '#4B5563'
-const BORDER  = '#1E2D4E'
-const CARD    = '#0F1829'
-
-interface HeatDay  { date: string; pct: number }
-interface CalDay   { day: string; protein: number; carbs: number; fat: number }
-interface VolDay   { day: string; volume: number }
+interface JournalEntry {
+  id: string
+  date: string
+  mood: 'peaceful' | 'focused' | 'restless' | 'inspired' | 'tired'
+  text: string
+  reflection: string
+}
 
 interface Props {
   userId: string
@@ -32,24 +29,38 @@ interface Props {
   weeklyHabits: Habit[]
   completionSet: Set<string>
   completions: Completion[]
+  setTab: (t: Tab) => void
 }
 
 export default function OverviewTab({
   userId, month, year,
   dailyHabits, weeklyHabits, completionSet, completions,
+  setTab,
 }: Props) {
-  const [heatmap,         setHeatmap]         = useState<HeatDay[]>([])
-  const [calChart,        setCalChart]        = useState<CalDay[]>([])
-  const [volChart,        setVolChart]        = useState<VolDay[]>([])
-  const [todayCals,       setTodayCals]       = useState(0)
-  const [calGoal,         setCalGoal]         = useState(2000)
-  const [todayEntryCount, setTodayEntryCount] = useState(0)
-  const [todaySession,    setTodaySession]    = useState<string | null>(null)
+  const [todayCals,    setTodayCals]    = useState(0)
+  const [calGoal,      setCalGoal]      = useState(2000)
+  const [todaySession, setTodaySession] = useState<string | null>(null)
+  const [heatmap,      setHeatmap]      = useState<{ date: string; pct: number }[]>([])
+  const [scienceOpen,  setScienceOpen]  = useState(false)
+  const [journalOpen,  setJournalOpen]  = useState(false)
+  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([])
+  const [newMood,      setNewMood]      = useState<JournalEntry['mood']>('peaceful')
+  const [newText,      setNewText]      = useState('')
+  const [newReflection, setNewReflection] = useState('')
 
   const today = todayISO()
   const sb    = createClient()
   const allHabits = useMemo(() => [...dailyHabits, ...weeklyHabits], [dailyHabits, weeklyHabits])
 
+  // Load journal from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('asiryx_journal_entries')
+      if (saved) setJournalEntries(JSON.parse(saved))
+    } catch {}
+  }, [])
+
+  // Load Supabase data
   useEffect(() => { if (userId) load() }, [userId, dailyHabits.length])
 
   async function load() {
@@ -58,12 +69,12 @@ export default function OverviewTab({
 
     const [comp30, calRes, sessRes, settingsRes] = await Promise.all([
       sb.from('completions').select('habit_id, date').eq('user_id', userId).gte('date', from30).lte('date', today),
-      sb.from('calorie_entries').select('date, calories, protein, carbs, fat').eq('user_id', userId).gte('date', from30).lte('date', today),
-      sb.from('workout_sessions').select('id, date, name').eq('user_id', userId).gte('date', from30).lte('date', today),
+      sb.from('calorie_entries').select('date, calories').eq('user_id', userId).eq('date', today),
+      sb.from('workout_sessions').select('id, date, name').eq('user_id', userId).eq('date', today),
       sb.from('user_settings').select('daily_calorie_goal').eq('user_id', userId).maybeSingle(),
     ])
 
-    // Heatmap
+    // Heatmap (30 days)
     const compSet30 = new Set((comp30.data ?? []).map((c: any) => `${c.habit_id}__${c.date}`))
     setHeatmap(Array.from({ length: 30 }, (_, i) => {
       const d = new Date(); d.setDate(d.getDate() - (29 - i))
@@ -72,47 +83,12 @@ export default function OverviewTab({
       return { date: iso, pct: dailyHabits.length > 0 ? done / dailyHabits.length : 0 }
     }))
 
-    // Calorie chart (last 7 days)
-    const last7Base = Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(); d.setDate(d.getDate() - (6 - i))
-      return { day: d.toLocaleDateString('en', { weekday: 'short' }), date: d.toISOString().split('T')[0], cals: 0, protein: 0, carbs: 0, fat: 0 }
-    })
-    ;(calRes.data ?? []).forEach((e: any) => {
-      const idx = last7Base.findIndex(d => d.date === e.date)
-      if (idx >= 0) {
-        last7Base[idx].cals    += e.calories
-        last7Base[idx].protein += Number(e.protein)
-        last7Base[idx].carbs   += Number(e.carbs)
-        last7Base[idx].fat     += Number(e.fat)
-      }
-    })
-    setCalChart(last7Base.map(d => ({ day: d.day, protein: Math.round(d.protein), carbs: Math.round(d.carbs), fat: Math.round(d.fat) })))
-    setTodayCals(last7Base[6].cals)
+    setTodayCals((calRes.data ?? []).reduce((s: number, e: any) => s + (e.calories || 0), 0))
     setCalGoal(settingsRes.data?.daily_calorie_goal ?? 2000)
-    setTodayEntryCount((calRes.data ?? []).filter((e: any) => e.date === today).length)
-
-    // Workout volume (last 7 days)
-    const sessions = sessRes.data ?? []
-    setTodaySession(sessions.find((s: any) => s.date === today)?.name ?? null)
-
-    const vol7 = Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(); d.setDate(d.getDate() - (6 - i))
-      return { day: d.toLocaleDateString('en', { weekday: 'short' }), date: d.toISOString().split('T')[0], volume: 0 }
-    })
-    if (sessions.length > 0) {
-      const ids = sessions.map((s: any) => s.id)
-      const { data: exs } = await sb.from('workout_exercises').select('session_id, sets, reps, weight_kg').in('session_id', ids)
-      ;(exs ?? []).forEach((e: any) => {
-        const sess = sessions.find((s: any) => s.id === e.session_id) as any
-        if (!sess) return
-        const idx = vol7.findIndex(d => (d as any).date === sess.date)
-        if (idx >= 0) vol7[idx].volume += e.sets * e.reps * Number(e.weight_kg)
-      })
-    }
-    setVolChart(vol7.map(d => ({ day: d.day, volume: Math.round(d.volume) })))
+    setTodaySession((sessRes.data ?? [])[0]?.name ?? null)
   }
 
-  // Streak from heatmap (≥80% of daily habits = day done)
+  // Streak from heatmap
   const { currentStreak, bestStreak } = useMemo(() => {
     if (!heatmap.length) return { currentStreak: 0, bestStreak: 0 }
     let cur = 0, best = 0, run = 0
@@ -146,301 +122,435 @@ export default function OverviewTab({
   }, [allHabits, completionSet, year, month])
 
   const dailyDoneToday = dailyHabits.filter(h => completionSet.has(`${h.id}__${today}`)).length
-  const todayCompletions = completions.filter(c => c.date === today)
+  const caloriesRemaining = Math.max(0, calGoal - todayCals)
+  const calPct = Math.min(100, Math.round((todayCals / calGoal) * 100))
 
   // Greeting
   const hour = new Date().getHours()
-  const greeting = hour < 12 ? 'Good morning.' : hour < 18 ? 'Good afternoon.' : hour < 22 ? 'Good evening.' : 'Good night.'
-  const dateStr  = new Date().toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase()
-
-  // Heatmap
-  const heatFrom = (() => { const d = new Date(); d.setDate(d.getDate() - 29); return d.toLocaleDateString('en', { month: 'short', day: 'numeric' }).toUpperCase() })()
-  const heatTo   = new Date().toLocaleDateString('en', { month: 'short', day: 'numeric' }).toUpperCase()
-
-  function heatColor(p: number): string {
-    if (p === 0)   return '#1E2D4E'
-    if (p < 0.25)  return '#3b1d2e'
-    if (p < 0.5)   return '#6b2540'
-    if (p < 0.75)  return '#a02040'
-    return '#E94560'
-  }
+  const greeting = hour < 12 ? 'Good morning.' : hour < 17 ? 'Good afternoon.' : hour < 22 ? 'Good evening.' : 'Good night.'
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const now = new Date()
+  const dateStr = `${days[now.getDay()]} • ${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`
 
   function tabUrl(t: Tab) { return `/dashboard?month=${month}&year=${year}&tab=${t}` }
 
-  const C = { background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 24 }
-  const lbl = 'text-xs font-mono uppercase tracking-[0.15em]'
+  function heatColor(p: number): string {
+    if (p === 0)   return 'rgba(219,193,187,0.25)'
+    if (p < 0.25)  return '#ffdad2'
+    if (p < 0.5)   return '#f4b8a8'
+    if (p < 0.75)  return '#cc7055'
+    return '#95432f'
+  }
+
+  function addJournalEntry(e: React.FormEvent) {
+    e.preventDefault()
+    if (!newText.trim()) return
+    const entry: JournalEntry = {
+      id: `j-${Date.now()}`,
+      date: today,
+      mood: newMood,
+      text: newText,
+      reflection: newReflection,
+    }
+    const updated = [entry, ...journalEntries]
+    setJournalEntries(updated)
+    localStorage.setItem('asiryx_journal_entries', JSON.stringify(updated))
+    setNewText('')
+    setNewReflection('')
+    setJournalOpen(false)
+  }
 
   return (
-    <div className="space-y-4 pb-4">
+    <div className="space-y-12 animate-fade-in">
 
-      {/* ── Greeting card ────────────────────────────────────────────── */}
-      <div style={{ ...C, position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: 0, right: 0, width: 320, height: 220, background: 'radial-gradient(ellipse at 80% 10%, rgba(233,69,96,0.12) 0%, transparent 65%)', pointerEvents: 'none' }} />
-        <p className={lbl} style={{ color: MUTED }}>{dateStr}</p>
-        <h1 className="font-display mt-2" style={{ fontSize: 56, lineHeight: 1.05, color: TEXT }}>{greeting}</h1>
-        <p className="text-sm mt-2 max-w-sm" style={{ color: SUBTLE }}>
-          Here's how today is shaping up. Small actions compound — keep going.
-        </p>
-      </div>
+      {/* ── Hero welcome + bento grid ─────────────────────────────────── */}
+      <section
+        className="relative overflow-hidden"
+        style={{
+          borderRadius: 28,
+          background: '#fffaf2',
+          border: '1px solid rgba(219,193,187,0.2)',
+          padding: '40px 40px 48px',
+        }}
+      >
+        {/* Decorative blur */}
+        <div style={{
+          position: 'absolute', top: 0, right: 0, width: 480, height: 380,
+          background: 'radial-gradient(ellipse, rgba(149,67,47,0.07) 0%, transparent 65%)',
+          pointerEvents: 'none', translate: '30% -20%',
+        }} />
 
-      {/* ── 3 main stat cards ────────────────────────────────────────── */}
-      <div className="grid grid-cols-3 gap-3">
-        <StatCard dot="#E94560" label="Habits Today"
-          value={`${dailyDoneToday}/${dailyHabits.length}`} sub="completed" />
-        <StatCard dot="#E94560" label="Calories"
-          value={`${todayCals.toLocaleString()}/${calGoal.toLocaleString()}`}
-          sub={`${Math.round(Math.min(100, (todayCals / calGoal) * 100))}% of daily goal`} />
-        <StatCard dot="#22d3ee" label="Workout"
-          value={todaySession ?? '—'} sub={todaySession ? 'logged today' : 'not logged'} />
-      </div>
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: 600 }}>
+          <p style={{
+            fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.15em',
+            textTransform: 'uppercase', color: '#88726d', fontWeight: 700,
+            display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16,
+          }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#95432f', display: 'inline-block', animation: 'pulse 2s infinite' }} />
+            {dateStr}
+          </p>
+          <h1 style={{
+            fontFamily: 'var(--font-display)', fontSize: 'clamp(40px, 5vw, 64px)',
+            fontWeight: 800, color: '#1d1b15', lineHeight: 1.05,
+            letterSpacing: '-0.03em', marginBottom: 16,
+          }}>
+            {greeting}
+          </h1>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 17, color: '#55443d', lineHeight: 1.6, maxWidth: 440 }}>
+            Here's how today is shaping up. Small actions compound — keep going.
+          </p>
+        </div>
 
-      {/* ── 4 metric cards ───────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <MetricCard dot="#4ade80" label="Current Streak" value={`${currentStreak}d`} sub="consecutive days" />
-        <MetricCard dot="#E94560" label="Best Streak"    value={`${bestStreak}d`}    sub={`in ${monthName(month)}`} />
-        <MetricCard dot="#f472b6" label="Monthly Rate"   value={`${monthlyRate}%`}   sub={`avg across ${allHabits.length} habits`} />
-        <MetricCard dot="#22d3ee" label="Cals Remaining" value={Math.max(0, calGoal - todayCals).toLocaleString()} sub="until daily goal" />
-      </div>
-
-      {/* ── Heatmap + Jump in ────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-[1fr_280px] gap-3">
-        <div style={C}>
-          <p className={lbl} style={{ color: MUTED }}>Consistency</p>
-          <div className="flex items-center justify-between mt-1 mb-4">
-            <h3 className="font-display text-2xl" style={{ color: TEXT }}>Last 30 days</h3>
-            <div className="flex items-center gap-1">
-              <span className="text-xs font-mono mr-1" style={{ color: MUTED }}>LESS</span>
-              {[0, 0.2, 0.5, 0.75, 1].map((p, i) => (
-                <div key={i} style={{ width: 12, height: 12, borderRadius: 2, background: heatColor(p) }} />
-              ))}
-              <span className="text-xs font-mono ml-1" style={{ color: MUTED }}>MORE</span>
+        {/* Bento grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-12" style={{ position: 'relative', zIndex: 1 }}>
+          {/* Habits card */}
+          <Link href={tabUrl('habits')} style={{ textDecoration: 'none' }}>
+            <div
+              className="glass-card group"
+              style={{ padding: '28px', borderRadius: 22, cursor: 'pointer', transition: 'all 0.3s', display: 'block' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 16px 40px rgba(149,67,47,0.1)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ''; (e.currentTarget as HTMLDivElement).style.boxShadow = '' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#95432f', flexShrink: 0 }} />
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#88726d', fontWeight: 700 }}>Habits Today</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 8 }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: 52, fontWeight: 800, color: '#1d1b15', lineHeight: 1 }}>{dailyDoneToday}</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: 24, color: 'rgba(29,27,21,0.3)' }}>/ {dailyHabits.length}</span>
+              </div>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#55443d', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span>{Math.round(dailyHabits.length > 0 ? (dailyDoneToday / dailyHabits.length) * 100 : 0)}% completed today</span>
+              </p>
+              <div style={{ marginTop: 14, width: '100%', height: 4, background: 'rgba(219,193,187,0.4)', borderRadius: 999, overflow: 'hidden' }}>
+                <div style={{ height: '100%', background: '#95432f', width: `${dailyHabits.length > 0 ? (dailyDoneToday / dailyHabits.length) * 100 : 0}%`, borderRadius: 999, transition: 'width 0.5s' }} />
+              </div>
             </div>
-          </div>
-          <div className="flex gap-[3px] flex-wrap">
-            {heatmap.map((d, i) => (
-              <div key={i} title={`${d.date}: ${Math.round(d.pct * 100)}%`}
-                style={{ width: 16, height: 16, borderRadius: 3, background: heatColor(d.pct), flexShrink: 0 }} />
-            ))}
-          </div>
-          <div className="flex justify-between mt-2">
-            <span className="text-xs font-mono" style={{ color: MUTED }}>{heatFrom}</span>
-            <span className="text-xs font-mono" style={{ color: MUTED }}>{heatTo}</span>
-          </div>
-        </div>
+          </Link>
 
-        <div style={C}>
-          <p className={lbl} style={{ color: MUTED }}>Jump in</p>
-          <h3 className="font-display text-2xl mt-1 mb-4" style={{ color: TEXT }}>Track now</h3>
-          <div className="space-y-2">
-            <JumpItem href={tabUrl('habits')}
-              label="Tick off habits" sub={`${dailyDoneToday}/${dailyHabits.length} today`} />
-            <JumpItem href={tabUrl('calories')}
-              label="Log a meal" sub={`${todayCals.toLocaleString()} kcal so far`} />
-            <JumpItem href={tabUrl('gym')}
-              label="Start workout" sub={todaySession ?? 'no session yet'} />
-          </div>
-        </div>
-      </div>
-
-      {/* ── 7-day charts ─────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div style={C}>
-          <p className={lbl} style={{ color: MUTED }}>Last 7 days</p>
-          <div className="flex items-center justify-between mt-1 mb-3">
-            <h3 className="font-display text-xl" style={{ color: TEXT }}>Calories & macros</h3>
-            <div className="flex gap-3">
-              {[{ l: 'PROTEIN', c: '#22d3ee' }, { l: 'CARBS', c: '#f472b6' }, { l: 'FAT', c: '#fb923c' }].map(m => (
-                <span key={m.l} className="flex items-center gap-1">
-                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: m.c, display: 'inline-block' }} />
-                  <span className="text-xs font-mono" style={{ color: MUTED }}>{m.l}</span>
-                </span>
-              ))}
+          {/* Calories card */}
+          <Link href={tabUrl('calories')} style={{ textDecoration: 'none' }}>
+            <div
+              className="glass-card"
+              style={{ padding: '28px', borderRadius: 22, cursor: 'pointer', transition: 'all 0.3s', display: 'block' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 16px 40px rgba(149,67,47,0.1)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ''; (e.currentTarget as HTMLDivElement).style.boxShadow = '' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#88726d', flexShrink: 0 }} />
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#88726d', fontWeight: 700 }}>Calories</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 8 }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: 52, fontWeight: 800, color: '#1d1b15', lineHeight: 1 }}>{todayCals.toLocaleString()}</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: 24, color: 'rgba(29,27,21,0.3)' }}>/ {calGoal.toLocaleString()}</span>
+              </div>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#55443d' }}>{calPct}% of daily goal</p>
+              <div style={{ marginTop: 14, width: '100%', height: 4, background: 'rgba(219,193,187,0.4)', borderRadius: 999, overflow: 'hidden' }}>
+                <div style={{ height: '100%', background: '#88726d', width: `${calPct}%`, borderRadius: 999, transition: 'width 0.5s' }} />
+              </div>
             </div>
-          </div>
-          <div style={{ height: 140 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={calChart} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-                <XAxis dataKey="day" tick={{ fill: MUTED, fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis hide />
-                <Tooltip contentStyle={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 12 }}
-                  labelStyle={{ color: SUBTLE }} cursor={{ stroke: BORDER }} />
-                <Line type="monotone" dataKey="protein" stroke="#22d3ee" strokeWidth={1.5} dot={false} />
-                <Line type="monotone" dataKey="carbs"   stroke="#f472b6" strokeWidth={1.5} dot={false} />
-                <Line type="monotone" dataKey="fat"     stroke="#fb923c" strokeWidth={1.5} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+          </Link>
 
-        <div style={C}>
-          <p className={lbl} style={{ color: MUTED }}>Last 7 days</p>
-          <div className="flex items-center justify-between mt-1 mb-3">
-            <h3 className="font-display text-xl" style={{ color: TEXT }}>Workout volume</h3>
-            <span className="flex items-center gap-1">
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: ACCENT, display: 'inline-block' }} />
-              <span className="text-xs font-mono" style={{ color: MUTED }}>KG TOTAL</span>
-            </span>
-          </div>
-          <div style={{ height: 140 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={volChart} barSize={24} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-                <XAxis dataKey="day" tick={{ fill: MUTED, fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis hide />
-                <Tooltip contentStyle={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 12 }}
-                  labelStyle={{ color: SUBTLE }} cursor={{ fill: 'rgba(0,0,0,0.03)' }}
-                  formatter={(v) => [`${Number(v).toLocaleString()} kg`, 'Volume']} />
-                <Bar dataKey="volume" radius={[4, 4, 0, 0]}>
-                  {volChart.map((_, i) => (
-                    <Cell key={i} fill={i === volChart.length - 1 ? ACCENT : '#1E2D4E'} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Habits at a glance + Activity feed ───────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div style={C}>
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <p className={lbl} style={{ color: MUTED }}>Today</p>
-              <h3 className="font-display text-xl mt-0.5" style={{ color: TEXT }}>Habits at a glance</h3>
-            </div>
-            <Link href={tabUrl('habits')}
-              className="text-xs px-3 py-1.5 rounded-full font-medium transition-all hover:-translate-y-0.5"
-              style={{ border: `1px solid ${BORDER}`, color: SUBTLE }}>
-              Open tracker →
-            </Link>
-          </div>
-          {dailyHabits.length === 0 ? (
-            <p className="text-sm" style={{ color: MUTED }}>
-              No habits yet.{' '}
-              <Link href={tabUrl('habits')} style={{ color: ACCENT }}>Add some →</Link>
-            </p>
-          ) : (
-            <div className="space-y-2.5">
-              {dailyHabits.slice(0, 6).map(h => {
-                const done = completionSet.has(`${h.id}__${today}`)
-                return (
-                  <div key={h.id} className="flex items-center gap-3">
-                    <div style={{
-                      width: 18, height: 18, borderRadius: 4, flexShrink: 0,
-                      border: `1.5px solid ${done ? ACCENT : BORDER}`,
-                      background: done ? ACCENT + '18' : 'transparent',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      {done && (
-                        <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                          <path d="M1 4L3.5 6.5L9 1" stroke={ACCENT} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      )}
-                    </div>
-                    <span className="text-sm" style={{ color: done ? MUTED : TEXT, textDecoration: done ? 'line-through' : 'none' }}>
-                      {h.name}
-                    </span>
+          {/* Workout card */}
+          <Link href={tabUrl('gym')} style={{ textDecoration: 'none' }}>
+            <div
+              className="glass-card"
+              style={{ padding: '28px', borderRadius: 22, cursor: 'pointer', transition: 'all 0.3s', display: 'block' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 16px 40px rgba(149,67,47,0.1)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ''; (e.currentTarget as HTMLDivElement).style.boxShadow = '' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: todaySession ? '#95432f' : 'rgba(219,193,187,0.8)', flexShrink: 0 }} />
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#88726d', fontWeight: 700 }}>Workout</span>
+              </div>
+              {todaySession ? (
+                <div>
+                  <p style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: '#1d1b15', marginBottom: 6, lineHeight: 1.2 }}>{todaySession}</p>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#95432f' }}>Completed today</p>
+                </div>
+              ) : (
+                <div>
+                  <div style={{ height: 48, display: 'flex', alignItems: 'center', marginBottom: 6 }}>
+                    <div style={{ width: 64, height: 4, background: 'rgba(29,27,21,0.1)', borderRadius: 999 }} />
                   </div>
-                )
-              })}
-              {dailyHabits.length > 6 && (
-                <p className="text-xs" style={{ color: MUTED }}>+{dailyHabits.length - 6} more</p>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#55443d', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    Not logged yet <ArrowRight size={13} />
+                  </p>
+                </div>
               )}
             </div>
-          )}
+          </Link>
+        </div>
+      </section>
+
+      {/* ── Metrics row ───────────────────────────────────────────────── */}
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+        {[
+          { dot: 'rgba(219,193,187,0.8)', label: 'Current Streak', value: `${currentStreak}d`, sub: 'consecutive days' },
+          { dot: '#95432f',               label: 'Best Streak',    value: `${bestStreak}d`,    sub: 'personal record'  },
+          { dot: '#88726d',               label: 'Completion Rate', value: `${monthlyRate}%`,  sub: `avg across ${allHabits.length} habits` },
+          { dot: '#1d1b15',               label: 'Cals Remaining',  value: caloriesRemaining.toLocaleString(), sub: 'until daily goal' },
+        ].map(m => (
+          <div
+            key={m.label}
+            style={{
+              background: '#f9f3e9', borderRadius: 22, padding: '28px',
+              border: '1px solid rgba(219,193,187,0.15)', transition: 'background 0.3s',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = '#f3ede3' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = '#f9f3e9' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: m.dot, flexShrink: 0 }} />
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#88726d', fontWeight: 700 }}>{m.label}</span>
+            </div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 32, fontWeight: 800, color: '#1d1b15', lineHeight: 1, marginBottom: 6 }}>{m.value}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#88726d' }}>{m.sub}</div>
+          </div>
+        ))}
+      </section>
+
+      {/* ── Heatmap ───────────────────────────────────────────────────── */}
+      <section
+        style={{
+          background: 'rgba(255,255,255,0.6)', borderRadius: 22, padding: '28px 32px',
+          border: '1px solid rgba(219,193,187,0.2)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
+          <div>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.15em', color: '#88726d', fontWeight: 700, marginBottom: 4 }}>Consistency</p>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 800, color: '#1d1b15', margin: 0 }}>Last 30 days</h3>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#88726d', marginRight: 4 }}>LESS</span>
+            {[0, 0.2, 0.5, 0.75, 1].map((p, i) => (
+              <div key={i} style={{ width: 12, height: 12, borderRadius: 3, background: heatColor(p) }} />
+            ))}
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#88726d', marginLeft: 4 }}>MORE</span>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          {heatmap.map((d, i) => (
+            <div
+              key={i}
+              title={`${d.date}: ${Math.round(d.pct * 100)}%`}
+              style={{ width: 18, height: 18, borderRadius: 4, background: heatColor(d.pct), flexShrink: 0 }}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* ── Editorial section ─────────────────────────────────────────── */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mt-8">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <h2 style={{
+            fontFamily: 'var(--font-display)', fontSize: 'clamp(32px, 4vw, 48px)',
+            fontWeight: 800, color: '#1d1b15', lineHeight: 1.1,
+            letterSpacing: '-0.03em', margin: 0,
+          }}>
+            A Holistic Approach to Data.
+          </h2>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 17, color: '#55443d', lineHeight: 1.6, margin: 0 }}>
+            Wellness is the synthesis of your movement, your rest, and your nutrition. Asiryx brings these elements together in a calm, focused environment designed for clarity and growth.
+          </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+            <button
+              onClick={() => setScienceOpen(true)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                background: '#95432f', color: '#fff',
+                border: 'none', borderRadius: 999, padding: '14px 28px',
+                fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600,
+                cursor: 'pointer', transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#7a2f1c'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 20px rgba(149,67,47,0.25)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#95432f'; (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none' }}
+            >
+              <BookOpen size={16} />
+              View Science
+            </button>
+            <button
+              onClick={() => setJournalOpen(true)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                background: 'transparent', color: '#1d1b15',
+                border: '1px solid rgba(219,193,187,0.6)', borderRadius: 999, padding: '14px 28px',
+                fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600,
+                cursor: 'pointer', transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#95432f'; (e.currentTarget as HTMLButtonElement).style.color = '#95432f'; (e.currentTarget as HTMLButtonElement).style.background = '#fff9ee' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(219,193,187,0.6)'; (e.currentTarget as HTMLButtonElement).style.color = '#1d1b15'; (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+            >
+              <Edit3 size={16} />
+              Journal
+            </button>
+          </div>
         </div>
 
-        <div style={C}>
-          <p className={lbl} style={{ color: MUTED }}>Recent</p>
-          <h3 className="font-display text-xl mt-0.5 mb-4" style={{ color: TEXT }}>Activity feed</h3>
-          {todayCompletions.length === 0 ? (
-            <p className="text-sm" style={{ color: MUTED }}>Nothing logged yet today. Start small.</p>
-          ) : (
-            <div className="space-y-2">
-              {todayCompletions.slice(0, 7).map(c => {
-                const habit = allHabits.find(h => h.id === c.habit_id)
-                if (!habit) return null
-                return (
-                  <div key={c.id} className="flex items-center gap-2">
-                    <span style={{ color: ACCENT, fontSize: 8 }}>●</span>
-                    <span className="text-sm" style={{ color: SUBTLE }}>
-                      Completed{' '}
-                      <span style={{ color: TEXT, fontWeight: 500 }}>{habit.name}</span>
-                    </span>
+        <div style={{ position: 'relative', height: 380, borderRadius: 24, overflow: 'hidden', border: '1px solid rgba(219,193,187,0.2)' }}>
+          <img
+            src="https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=800&q=80"
+            alt="Wellness aesthetic"
+            referrerPolicy="no-referrer"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 1s' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.05)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1)' }}
+          />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(255,249,238,0.2), transparent)', pointerEvents: 'none' }} />
+        </div>
+      </section>
+
+      {/* ── Science Modal ─────────────────────────────────────────────── */}
+      <Modal isOpen={scienceOpen} onClose={() => setScienceOpen(false)} title="Science of Kinetic Serenity">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingBottom: 16 }}>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: '#55443d', lineHeight: 1.65, margin: 0 }}>
+            Kinetic Serenity is a physiological framework based on compounding small mindful efforts. Instead of stressing over rigid fitness regimes, our focus centers on consistency.
+          </p>
+
+          {[
+            {
+              icon: <Sparkles size={16} color="#95432f" />,
+              title: '1. Compounding Streaks',
+              body: 'Neuroplasticity studies show that completing simple, daily health triggers builds stable visual reinforcement loops, making long-term lifestyle adjustment 3.8× easier than high-intensity bursts.',
+            },
+            {
+              icon: <Flame size={16} color="#95432f" />,
+              title: '2. Non-Adrenaline Movement',
+              body: 'Calibrating physical weights in the Gym tab allows active recovery. Lifting with deliberate speed downregulates serum cortisol levels, promoting heart rate variability (HRV) recovery.',
+            },
+            {
+              icon: <Calendar size={16} color="#95432f" />,
+              title: '3. Nutrition Rhythms',
+              body: 'Logging dietary fuels sequentially stabilizes systemic energy spikes. Remaining slightly below or right at base metabolic benchmarks permits gentle cellular autophagy and mental alertness.',
+            },
+          ].map((item, i) => (
+            <div key={i} style={{
+              padding: '18px 20px', borderRadius: 16,
+              background: 'rgba(249,243,233,0.6)', border: '1px solid rgba(219,193,187,0.2)',
+            }}>
+              <h4 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: '#95432f', display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 10px' }}>
+                {item.icon}
+                {item.title}
+              </h4>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#55443d', lineHeight: 1.65, margin: 0 }}>
+                {item.body}
+              </p>
+            </div>
+          ))}
+
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#88726d', textAlign: 'center', fontStyle: 'italic', margin: 0 }}>
+            Asiryx wellness modules are validated with data & design clarity.
+          </p>
+        </div>
+      </Modal>
+
+      {/* ── Journal Modal ─────────────────────────────────────────────── */}
+      <Modal isOpen={journalOpen} onClose={() => setJournalOpen(false)} title="Gratitude & Serenity Journal">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingBottom: 16 }}>
+          {journalEntries.length > 0 && (
+            <div>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#88726d', fontWeight: 700, marginBottom: 12 }}>
+                Recent Reflections ({journalEntries.length})
+              </p>
+              <div style={{ maxHeight: 140, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {journalEntries.slice(0, 5).map(entry => (
+                  <div key={entry.id} style={{
+                    padding: '12px 14px', background: 'rgba(252,249,242,0.8)', borderRadius: 12,
+                    border: '1px solid rgba(219,193,187,0.15)', fontSize: 12,
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#88726d', marginBottom: 4 }}>
+                      <span style={{ fontFamily: 'var(--font-mono)' }}>{entry.date}</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', background: 'rgba(237,231,221,0.8)', padding: '1px 8px', borderRadius: 999, fontWeight: 700, textTransform: 'capitalize' }}>{entry.mood}</span>
+                    </div>
+                    <p style={{ fontFamily: 'var(--font-body)', fontWeight: 600, color: '#1d1b15', margin: '0 0 4px' }}>{entry.text}</p>
+                    {entry.reflection && (
+                      <p style={{ fontFamily: 'var(--font-body)', color: '#55443d', fontStyle: 'italic', margin: 0, paddingLeft: 8, borderLeft: '2px solid rgba(219,193,187,0.6)' }}>{entry.reflection}</p>
+                    )}
                   </div>
-                )
-              })}
+                ))}
+              </div>
             </div>
           )}
+
+          <form onSubmit={addJournalEntry} style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 4, borderTop: journalEntries.length > 0 ? '1px solid rgba(219,193,187,0.3)' : 'none' }}>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 700, color: '#1d1b15', margin: 0 }}>How are you feeling right now?</h3>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6 }}>
+              {(['peaceful', 'focused', 'restless', 'inspired', 'tired'] as const).map(mood => (
+                <button
+                  type="button"
+                  key={mood}
+                  onClick={() => setNewMood(mood)}
+                  style={{
+                    padding: '8px 4px', textAlign: 'center', borderRadius: 10,
+                    fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 500, textTransform: 'capitalize',
+                    background: newMood === mood ? '#95432f' : '#f9f3e9',
+                    color: newMood === mood ? '#fff' : '#55443d',
+                    border: newMood === mood ? '1px solid #95432f' : '1px solid transparent',
+                    cursor: 'pointer', transition: 'all 0.15s',
+                  }}
+                >
+                  {mood}
+                </button>
+              ))}
+            </div>
+
+            <div>
+              <label style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#55443d', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Today's Focus</label>
+              <input
+                type="text" required value={newText}
+                onChange={e => setNewText(e.target.value)}
+                placeholder="e.g. Cleared my headspace on an evening walk"
+                style={{
+                  width: '100%', padding: '10px 14px', borderRadius: 12, fontSize: 13,
+                  fontFamily: 'var(--font-body)', background: 'rgba(249,243,233,0.8)',
+                  border: '1px solid rgba(219,193,187,0.4)', outline: 'none',
+                  color: '#1d1b15',
+                  transition: 'border-color 0.15s',
+                  boxSizing: 'border-box',
+                }}
+                onFocus={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#95432f' }}
+                onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = 'rgba(219,193,187,0.4)' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#55443d', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Gratitude (optional)</label>
+              <textarea
+                value={newReflection}
+                onChange={e => setNewReflection(e.target.value)}
+                placeholder="e.g. Grateful for the subtle morning light and my resilient body."
+                rows={3}
+                style={{
+                  width: '100%', padding: '10px 14px', borderRadius: 12, fontSize: 13,
+                  fontFamily: 'var(--font-body)', background: 'rgba(249,243,233,0.8)',
+                  border: '1px solid rgba(219,193,187,0.4)', outline: 'none',
+                  color: '#1d1b15', resize: 'none',
+                  transition: 'border-color 0.15s',
+                  boxSizing: 'border-box',
+                }}
+                onFocus={e => { (e.currentTarget as HTMLTextAreaElement).style.borderColor = '#95432f' }}
+                onBlur={e => { (e.currentTarget as HTMLTextAreaElement).style.borderColor = 'rgba(219,193,187,0.4)' }}
+              />
+            </div>
+
+            <button
+              type="submit"
+              style={{
+                width: '100%', padding: '12px', borderRadius: 999, fontSize: 14, fontWeight: 600,
+                fontFamily: 'var(--font-body)', background: '#95432f', color: '#fff',
+                border: 'none', cursor: 'pointer', transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#7a2f1c' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#95432f' }}
+            >
+              Record Reflection
+            </button>
+          </form>
         </div>
-      </div>
-
-      {/* ── Quick links ───────────────────────────────────────────────── */}
-      <div className="grid grid-cols-3 gap-3">
-        <QuickLink href={tabUrl('habits')}   label="Habits"   sub={`${allHabits.length} active`} />
-        <QuickLink href={tabUrl('calories')} label="Calories" sub={`${todayEntryCount} entries today`} />
-        <QuickLink href={tabUrl('gym')}      label="Gym"      sub={todaySession ?? 'no session'} />
-      </div>
+      </Modal>
     </div>
-  )
-}
-
-// ── Sub-components ────────────────────────────────────────────────────
-
-function StatCard({ dot, label, value, sub }: { dot: string; label: string; value: string; sub: string }) {
-  return (
-    <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: '18px 20px' }}>
-      <div className="flex items-center gap-1.5 mb-3">
-        <span style={{ width: 7, height: 7, borderRadius: '50%', background: dot, flexShrink: 0 }} />
-        <span className="text-xs font-mono uppercase tracking-[0.12em]" style={{ color: MUTED }}>{label}</span>
-      </div>
-      <div className="font-display" style={{ fontSize: 38, lineHeight: 1.05, color: TEXT }}>{value}</div>
-      <div className="text-xs mt-1" style={{ color: MUTED }}>{sub}</div>
-    </div>
-  )
-}
-
-function MetricCard({ dot, label, value, sub }: { dot: string; label: string; value: string; sub: string }) {
-  return (
-    <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: '16px 20px' }}>
-      <div className="flex items-center gap-1.5 mb-2">
-        <span style={{ width: 7, height: 7, borderRadius: '50%', background: dot, flexShrink: 0 }} />
-        <span className="text-xs font-mono uppercase tracking-[0.12em]" style={{ color: MUTED }}>{label}</span>
-      </div>
-      <div className="font-display text-3xl" style={{ color: TEXT, lineHeight: 1.1 }}>{value}</div>
-      <div className="text-xs mt-1" style={{ color: MUTED }}>{sub}</div>
-    </div>
-  )
-}
-
-function JumpItem({ href, label, sub }: { href: string; label: string; sub: string }) {
-  return (
-    <Link href={href}
-      className="flex items-center justify-between p-3 rounded-xl transition-all duration-150 group"
-      style={{ border: `1px solid ${BORDER}` }}
-      onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = '#141E33' }}
-      onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = '' }}>
-      <div>
-        <div className="text-sm font-medium" style={{ color: TEXT }}>{label}</div>
-        <div className="text-xs mt-0.5" style={{ color: MUTED }}>{sub}</div>
-      </div>
-      <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#1E2D4E', display: 'flex', alignItems: 'center', justifyContent: 'center', color: SUBTLE, fontSize: 14 }}>
-        →
-      </div>
-    </Link>
-  )
-}
-
-function QuickLink({ href, label, sub }: { href: string; label: string; sub: string }) {
-  return (
-    <Link href={href}
-      className="flex items-center justify-between p-4 rounded-xl transition-all duration-150 hover:-translate-y-0.5"
-      style={{ background: CARD, border: `1px solid ${BORDER}` }}>
-      <div>
-        <div className="text-sm font-semibold" style={{ color: TEXT }}>{label}</div>
-        <div className="text-xs mt-0.5 font-mono" style={{ color: MUTED }}>{sub}</div>
-      </div>
-      <span style={{ color: MUTED }}>→</span>
-    </Link>
   )
 }

@@ -15,6 +15,7 @@ import {
 } from '@/lib/utils'
 import type { Habit, Completion } from '@/types'
 import Link from 'next/link'
+import { Menu, X } from 'lucide-react'
 
 type Tab = 'overview' | 'habits' | 'calories' | 'gym'
 
@@ -24,8 +25,6 @@ const TABS: { key: Tab; label: string }[] = [
   { key: 'calories',  label: 'Calories'  },
   { key: 'gym',       label: 'Gym'       },
 ]
-
-const ACCENT = '#c4573d'
 
 interface Props { month: number; year: number; tab: Tab }
 
@@ -37,8 +36,27 @@ export default function DashboardClient({ month, year, tab }: Props) {
   const [completions,  setCompletions]  = useState<Completion[]>([])
   const [ready,        setReady]        = useState(false)
   const [carryingOver, setCarryingOver] = useState(false)
-  const [menuOpen,     setMenuOpen]     = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
+  const [mobileOpen,   setMobileOpen]   = useState(false)
+  const [scrolled,     setScrolled]     = useState(false)
+  const drawerRef = useRef<HTMLDivElement>(null)
+
+  // ── Scroll detection ─────────────────────────────────────────────────
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', onScroll)
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // Close mobile menu on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (drawerRef.current && !drawerRef.current.contains(e.target as Node)) {
+        setMobileOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
 
   // ── Auth boot ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -62,17 +80,6 @@ export default function DashboardClient({ month, year, tab }: Props) {
       }
     }
     boot()
-  }, [])
-
-  // Close menu on outside click
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
   // ── Habit fetch ──────────────────────────────────────────────────────
@@ -138,47 +145,60 @@ export default function DashboardClient({ month, year, tab }: Props) {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
 
-      {/* ── Top nav ──────────────────────────────────────────────────── */}
-      <nav style={{
-        position: 'sticky', top: 0, zIndex: 40,
-        background: 'rgba(6,9,16,0.92)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-      }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', height: 56, gap: 16 }}>
+      {/* ── Fixed Header ─────────────────────────────────────────────── */}
+      <header
+        style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', zIndex: 40,
+          transition: 'all 0.3s',
+          background: scrolled ? 'rgba(255,249,238,0.95)' : 'rgba(255,249,238,0.85)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          borderBottom: '1px solid rgba(136,114,109,0.1)',
+          boxShadow: scrolled ? '0 1px 12px rgba(149,67,47,0.06)' : 'none',
+        }}
+      >
+        <div style={{ maxWidth: 1440, margin: '0 auto', padding: '0 24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', height: scrolled ? 60 : 72, gap: 16, transition: 'height 0.3s' }}>
 
             {/* Logo */}
             <Link href="/dashboard" style={{ textDecoration: 'none', flexShrink: 0 }}>
               <span style={{
                 fontFamily: 'var(--font-display)',
-                fontSize: 22,
-                fontWeight: 400,
-                color: '#ffffff',
-                letterSpacing: '-0.01em',
+                fontSize: 24,
+                fontWeight: 800,
+                color: '#1d1b15',
+                letterSpacing: '-0.02em',
               }}>
-                asiryx<span style={{ color: ACCENT }}>.</span>
+                asiryx<span style={{ color: '#95432f' }}>.</span>
               </span>
             </Link>
 
-            {/* Tab pills */}
-            <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+            {/* Desktop pill nav */}
+            <nav
+              className="hidden md:flex"
+              style={{
+                flex: 1, justifyContent: 'center',
+                display: 'flex',
+              }}
+            >
               <div style={{
-                display: 'flex', gap: 2, padding: 3,
-                background: 'rgba(255,255,255,0.04)', borderRadius: 999,
+                display: 'flex', gap: 2, padding: '4px',
+                background: 'rgba(219,193,187,0.25)',
+                borderRadius: 999,
+                border: '1px solid rgba(219,193,187,0.4)',
               }}>
                 {TABS.map(({ key, label }) => (
                   <Link key={key} href={tabUrl(key)} style={{ textDecoration: 'none' }}>
                     <span style={{
                       display: 'inline-block',
-                      padding: '5px 14px',
+                      padding: '7px 20px',
                       borderRadius: 999,
-                      fontSize: 13,
-                      fontWeight: 500,
-                      transition: 'all 0.15s',
-                      background: tab === key ? '#E94560' : 'transparent',
-                      color: tab === key ? '#ffffff' : 'rgba(255,255,255,0.4)',
-                      boxShadow: tab === key ? '0 0 12px rgba(233,69,96,0.35)' : 'none',
+                      fontSize: 14,
+                      fontWeight: 600,
+                      fontFamily: 'var(--font-body)',
+                      transition: 'all 0.2s',
+                      background: tab === key ? '#95432f' : 'transparent',
+                      color: tab === key ? '#ffffff' : '#55443d',
                       cursor: 'pointer',
                     }}>
                       {label}
@@ -186,65 +206,119 @@ export default function DashboardClient({ month, year, tab }: Props) {
                   </Link>
                 ))}
               </div>
-            </div>
+            </nav>
 
-            {/* Hamburger */}
-            <div ref={menuRef} style={{ position: 'relative', flexShrink: 0 }}>
+            {/* Mobile hamburger */}
+            <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }} className="md:hidden">
               <button
-                onClick={() => setMenuOpen(v => !v)}
+                onClick={() => setMobileOpen(v => !v)}
                 style={{
-                  width: 36, height: 36, borderRadius: 8,
-                  background: menuOpen ? 'rgba(255,255,255,0.08)' : 'transparent',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  cursor: 'pointer',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center',
-                  justifyContent: 'center', gap: 4,
-                  transition: 'background 0.15s',
+                  width: 40, height: 40, borderRadius: '50%',
+                  background: mobileOpen ? 'rgba(149,67,47,0.1)' : 'transparent',
+                  border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#1d1b15', transition: 'all 0.2s',
                 }}
               >
-                {[0, 1, 2].map(i => (
-                  <span key={i} style={{
-                    width: 15, height: 1.5, background: 'rgba(255,255,255,0.5)',
-                    borderRadius: 1, display: 'block',
-                  }} />
-                ))}
+                {mobileOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
+            </div>
 
-              {menuOpen && (
-                <div style={{
-                  position: 'absolute', top: 44, right: 0,
-                  background: '#0F1829', border: '1px solid #1E2D4E',
-                  borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-                  minWidth: 140, zIndex: 100, overflow: 'hidden',
-                }}>
-                  <button
-                    onClick={handleSignOut}
-                    style={{
-                      width: '100%', padding: '10px 16px', textAlign: 'left',
-                      fontSize: 13, color: 'rgba(255,255,255,0.5)', display: 'block',
-                      background: 'none', border: 'none', cursor: 'pointer',
-                      transition: 'all 0.15s',
-                    }}
-                    onMouseEnter={e => {
-                      (e.currentTarget as HTMLButtonElement).style.background = '#141E33'
-                      ;(e.currentTarget as HTMLButtonElement).style.color = '#ffffff'
-                    }}
-                    onMouseLeave={e => {
-                      (e.currentTarget as HTMLButtonElement).style.background = 'none'
-                      ;(e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.5)'
-                    }}
-                  >
-                    Sign out
-                  </button>
-                </div>
-              )}
+            {/* Desktop: hamburger for sign out */}
+            <div style={{ flexShrink: 0 }} className="hidden md:block">
+              <button
+                onClick={handleSignOut}
+                style={{
+                  padding: '7px 16px', borderRadius: 999, fontSize: 13,
+                  fontFamily: 'var(--font-mono)',
+                  background: 'transparent',
+                  border: '1px solid rgba(136,114,109,0.3)',
+                  color: '#88726d', cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLButtonElement).style.background = '#f3ede3'
+                  ;(e.currentTarget as HTMLButtonElement).style.color = '#1d1b15'
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
+                  ;(e.currentTarget as HTMLButtonElement).style.color = '#88726d'
+                }}
+              >
+                Sign out
+              </button>
             </div>
           </div>
         </div>
-      </nav>
+      </header>
+
+      {/* ── Mobile Drawer ─────────────────────────────────────────────── */}
+      {mobileOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 30 }}>
+          <div
+            onClick={() => setMobileOpen(false)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(29,27,21,0.25)', backdropFilter: 'blur(8px)' }}
+          />
+          <div
+            ref={drawerRef}
+            className="animate-slide-left"
+            style={{
+              position: 'absolute', top: 0, right: 0, bottom: 0,
+              width: 280, background: '#fff9ee',
+              borderLeft: '1px solid rgba(219,193,187,0.3)',
+              boxShadow: '-8px 0 32px rgba(149,67,47,0.1)',
+              padding: '80px 24px 32px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+            }}
+          >
+            <div>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#88726d', fontWeight: 700 }}>
+                Navigation
+              </span>
+              <nav style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 20 }}>
+                {TABS.map(({ key, label }) => (
+                  <Link
+                    key={key}
+                    href={tabUrl(key)}
+                    onClick={() => setMobileOpen(false)}
+                    style={{
+                      textDecoration: 'none', padding: '12px 16px', borderRadius: 14, fontSize: 18,
+                      fontFamily: 'var(--font-display)', fontWeight: 700,
+                      background: tab === key ? '#95432f' : 'transparent',
+                      color: tab === key ? '#ffffff' : '#55443d',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </nav>
+            </div>
+
+            <div>
+              <div style={{ borderTop: '1px solid rgba(219,193,187,0.3)', paddingTop: 20, marginBottom: 16 }}>
+                <button
+                  onClick={handleSignOut}
+                  style={{
+                    width: '100%', padding: '10px 16px', textAlign: 'left',
+                    fontFamily: 'var(--font-mono)', fontSize: 13, color: '#88726d',
+                    background: 'none', border: 'none', cursor: 'pointer', borderRadius: 8,
+                    transition: 'all 0.15s',
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#f3ede3'; (e.currentTarget as HTMLButtonElement).style.color = '#1d1b15' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none'; (e.currentTarget as HTMLButtonElement).style.color = '#88726d' }}
+                >
+                  Sign out
+                </button>
+              </div>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#88726d', opacity: 0.6 }}>
+                Asiryx · Continuous Somatic Tracking
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Main content ─────────────────────────────────────────────── */}
-      <main style={{ flex: 1, maxWidth: 1200, margin: '0 auto', width: '100%', padding: '32px 20px' }}>
+      <main style={{ flex: 1, maxWidth: 1440, margin: '0 auto', width: '100%', padding: '100px 24px 48px' }}>
 
         {/* OVERVIEW */}
         {tab === 'overview' && (
@@ -256,41 +330,37 @@ export default function DashboardClient({ month, year, tab }: Props) {
             weeklyHabits={weeklyHabits}
             completionSet={completionSet}
             completions={completions}
+            setTab={(t: Tab) => router.push(tabUrl(t))}
           />
         )}
 
         {/* HABITS */}
         {tab === 'habits' && (
           <div>
-            <ViewHeader label="TRACKER" title="Habits">
-              <MonthNav
-                month={month} year={year}
-                prev={prev} next={next}
-                isCurrentMonth={isCurrentMonth}
-              />
+            <ViewHeader label="HABIT TRACKER" title="Daily Habits">
+              <MonthNav month={month} year={year} prev={prev} next={next} isCurrentMonth={isCurrentMonth} />
             </ViewHeader>
 
             {ready && allHabits.length === 0 ? (
               <div style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
-                padding: '64px 0', border: '1px dashed #1E2D4E', borderRadius: 16, gap: 12,
+                padding: '64px 0', border: '1px dashed rgba(219,193,187,0.5)', borderRadius: 20, gap: 12,
+                background: 'rgba(255,255,255,0.3)',
               }}>
-                <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 14, margin: 0 }}>
+                <p style={{ color: '#88726d', fontSize: 14, margin: 0 }}>
                   No habits for {monthName(month)} {year}
                 </p>
                 <button
                   onClick={handleCarryOver}
                   disabled={carryingOver}
                   style={{
-                    padding: '10px 24px', borderRadius: 12, fontSize: 14,
+                    padding: '10px 24px', borderRadius: 999, fontSize: 14,
                     fontWeight: 600, cursor: carryingOver ? 'default' : 'pointer',
-                    border: 'none', background: ACCENT, color: '#fff',
+                    border: 'none', background: '#95432f', color: '#fff',
                     opacity: carryingOver ? 0.6 : 1, transition: 'opacity 0.2s',
                   }}
                 >
-                  {carryingOver
-                    ? 'Carrying over...'
-                    : `Carry over from ${monthName(prev.month)} ${prev.year}`}
+                  {carryingOver ? 'Carrying over...' : `Carry over from ${monthName(prev.month)} ${prev.year}`}
                 </button>
               </div>
             ) : (
@@ -309,7 +379,7 @@ export default function DashboardClient({ month, year, tab }: Props) {
         {/* CALORIES */}
         {tab === 'calories' && (
           <div>
-            <ViewHeader label="TRACKER" title="Calories" sub={`today · ${todayStr}`} />
+            <ViewHeader label="NUTRITION & FUEL" title="Calories" sub={`today · ${todayStr}`} />
             <CaloriesTab userId={userId!} />
           </div>
         )}
@@ -317,7 +387,7 @@ export default function DashboardClient({ month, year, tab }: Props) {
         {/* GYM */}
         {tab === 'gym' && (
           <div>
-            <ViewHeader label="TRACKER" title="Gym" sub={`today · ${todayStr}`} />
+            <ViewHeader label="GYM & MUSCULAR FLOW" title="Workout" sub={`today · ${todayStr}`} />
             <GymTab userId={userId!} />
           </div>
         )}
@@ -325,12 +395,12 @@ export default function DashboardClient({ month, year, tab }: Props) {
 
       {/* ── Footer ───────────────────────────────────────────────────── */}
       <footer style={{
-        borderTop: '1px solid rgba(255,255,255,0.06)',
-        padding: '16px 20px',
+        borderTop: '1px solid rgba(136,114,109,0.12)',
+        padding: '20px 24px',
         textAlign: 'center',
         fontSize: 12,
-        color: 'rgba(255,255,255,0.25)',
-        fontFamily: 'monospace',
+        color: '#88726d',
+        fontFamily: 'var(--font-mono)',
         letterSpacing: '0.06em',
       }}>
         asiryx · small actions, big results.
@@ -350,23 +420,23 @@ function ViewHeader({
   children?: React.ReactNode
 }) {
   return (
-    <div style={{ marginBottom: 28 }}>
+    <div style={{ marginBottom: 32 }}>
       <p style={{
-        fontSize: 11, fontFamily: 'monospace', letterSpacing: '0.12em',
-        color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', marginBottom: 8,
+        fontSize: 10, fontFamily: 'var(--font-mono)', letterSpacing: '0.15em',
+        color: '#88726d', textTransform: 'uppercase', marginBottom: 8, fontWeight: 700,
       }}>
         {label}
       </p>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
           <h1 style={{
-            fontFamily: 'var(--font-display)', fontSize: 36, fontWeight: 400,
-            color: '#ffffff', lineHeight: 1, margin: 0,
+            fontFamily: 'var(--font-display)', fontSize: 40, fontWeight: 800,
+            color: '#1d1b15', lineHeight: 1, margin: 0, letterSpacing: '-0.02em',
           }}>
             {title}
           </h1>
           {sub && (
-            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', fontFamily: 'monospace' }}>{sub}</span>
+            <span style={{ fontSize: 13, color: '#88726d', fontFamily: 'var(--font-mono)' }}>{sub}</span>
           )}
         </div>
         {children}
@@ -385,15 +455,15 @@ function MonthNav({
   next: { month: number; year: number }
   isCurrentMonth: boolean
 }) {
-  const ACCENT = '#E94560'
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
       <Link
         href={`/dashboard?month=${prev.month}&year=${prev.year}&tab=habits`}
         style={{
           width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          borderRadius: 8, border: '1px solid #1E2D4E', color: 'rgba(255,255,255,0.5)',
-          textDecoration: 'none', fontSize: 14, background: '#0F1829',
+          borderRadius: 8, border: '1px solid rgba(219,193,187,0.5)', color: '#88726d',
+          textDecoration: 'none', fontSize: 14, background: 'rgba(255,255,255,0.6)',
+          transition: 'all 0.15s',
         }}
       >
         ←
@@ -401,10 +471,10 @@ function MonthNav({
 
       <span style={{
         padding: '5px 12px', borderRadius: 999, fontSize: 12,
-        fontFamily: 'monospace', letterSpacing: '0.06em',
-        background: isCurrentMonth ? `${ACCENT}15` : 'rgba(255,255,255,0.04)',
-        color: isCurrentMonth ? ACCENT : 'rgba(255,255,255,0.5)',
-        border: `1px solid ${isCurrentMonth ? `${ACCENT}30` : '#1E2D4E'}`,
+        fontFamily: 'var(--font-mono)', letterSpacing: '0.06em',
+        background: isCurrentMonth ? 'rgba(149,67,47,0.08)' : 'rgba(255,255,255,0.6)',
+        color: isCurrentMonth ? '#95432f' : '#88726d',
+        border: `1px solid ${isCurrentMonth ? 'rgba(149,67,47,0.25)' : 'rgba(219,193,187,0.5)'}`,
       }}>
         {monthName(month)} {year}
       </span>
@@ -414,9 +484,9 @@ function MonthNav({
           href="/dashboard?tab=habits"
           style={{
             padding: '5px 10px', borderRadius: 999, fontSize: 11,
-            fontFamily: 'monospace', letterSpacing: '0.1em',
-            color: ACCENT, textDecoration: 'none',
-            border: `1px solid ${ACCENT}40`, background: `${ACCENT}15`,
+            fontFamily: 'var(--font-mono)', letterSpacing: '0.1em',
+            color: '#95432f', textDecoration: 'none',
+            border: '1px solid rgba(149,67,47,0.3)', background: 'rgba(149,67,47,0.06)',
           }}
         >
           TODAY
@@ -427,8 +497,9 @@ function MonthNav({
         href={`/dashboard?month=${next.month}&year=${next.year}&tab=habits`}
         style={{
           width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          borderRadius: 8, border: '1px solid #1E2D4E', color: 'rgba(255,255,255,0.5)',
-          textDecoration: 'none', fontSize: 14, background: '#0F1829',
+          borderRadius: 8, border: '1px solid rgba(219,193,187,0.5)', color: '#88726d',
+          textDecoration: 'none', fontSize: 14, background: 'rgba(255,255,255,0.6)',
+          transition: 'all 0.15s',
         }}
       >
         →
@@ -443,16 +514,16 @@ function LoadingSkeleton() {
   return (
     <div style={{
       minHeight: '100vh', display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center', gap: 8,
-      background: '#f0ebe4',
+      alignItems: 'center', justifyContent: 'center', gap: 10,
+      background: '#fff9ee',
     }}>
       <div style={{
         width: 32, height: 32, borderRadius: '50%',
-        border: '2px solid #e5ddd4', borderTopColor: '#c4573d',
+        border: '2px solid rgba(219,193,187,0.4)', borderTopColor: '#95432f',
         animation: 'spin 0.8s linear infinite',
       }} />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      <p style={{ color: '#a8a29e', fontSize: 13, fontFamily: 'monospace' }}>loading...</p>
+      <p style={{ color: '#88726d', fontSize: 13, fontFamily: 'monospace' }}>loading...</p>
     </div>
   )
 }

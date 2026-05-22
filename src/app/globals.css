@@ -63,54 +63,80 @@ body {
   .habit-tick.done  { @apply bg-done/20 border-done text-done animate-tick; }
   .habit-tick.today { @apply border-accent/50; }
   .habit-tick.future { @apply opacity-30 cursor-not-allowed pointer-events-none; }
+
+  /* Warm glassmorphism card — used inside .dashboard */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+  }
 }
 
-/* ── Dashboard dark theme overrides ──────────────────────────────────── */
+/* ── Dashboard warm cream theme ─────────────────────────────── */
 
 .dashboard {
   min-height: 100vh;
-  background: #060910;
-  color: #ffffff;
+  background: #fff9ee;
+  color: #1d1b15;
+  /* Use Sora + Hanken Grotesk inside the dashboard */
+  --font-display: var(--font-sora, 'Sora', sans-serif);
+  --font-body: var(--font-hanken, 'Hanken Grotesk', sans-serif);
 }
 
-.dashboard ::-webkit-scrollbar-track { background: #060910; }
-.dashboard ::-webkit-scrollbar-thumb { background: #1E2D4E; border-radius: 2px; }
+.dashboard ::-webkit-scrollbar-track { background: #f9f3e9; }
+.dashboard ::-webkit-scrollbar-thumb { background: #dbc1bb; border-radius: 2px; }
 
 .dashboard .card {
-  background: #0F1829;
-  border-color: #1E2D4E;
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(219, 193, 187, 0.4);
+  color: #1d1b15;
 }
 
 .dashboard .habit-card {
-  background: #0F1829;
-  border-color: #1E2D4E;
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(219, 193, 187, 0.35);
+  color: #1d1b15;
 }
 
 .dashboard .habit-card:hover {
-  background: #141E33;
-  box-shadow: 0 8px 32px rgba(233, 69, 96, 0.07), 0 2px 10px rgba(0, 0, 0, 0.35);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 8px 32px rgba(149, 67, 47, 0.08), 0 2px 10px rgba(0, 0, 0, 0.06);
   transform: translateY(-2px);
 }
 
 .dashboard .btn-primary {
-  background: #E94560;
-  box-shadow: 0 0 16px rgba(233,69,96,0.25);
+  background: #95432f;
+  box-shadow: 0 0 16px rgba(149, 67, 47, 0.2);
+  color: white;
 }
 
 .dashboard .btn-primary:hover {
-  background: #d63b54;
-  box-shadow: 0 0 20px rgba(233,69,96,0.35);
+  background: #7a2f1c;
+  box-shadow: 0 0 20px rgba(149, 67, 47, 0.3);
 }
 
 .dashboard .btn-ghost {
-  border-color: #1E2D4E;
-  color: rgba(255,255,255,0.4);
+  border-color: rgba(219, 193, 187, 0.6);
+  color: #55443d;
 }
 
 .dashboard .btn-ghost:hover {
-  color: #ffffff;
-  background: #0F1829;
-  border-color: #1E2D4E;
+  color: #1d1b15;
+  background: #f3ede3;
+  border-color: rgba(219, 193, 187, 0.8);
+}
+
+.dashboard .input {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(219, 193, 187, 0.4);
+  color: #1d1b15;
+}
+
+.dashboard .input::placeholder {
+  color: #88726d;
+}
+
+.dashboard .input:focus {
+  border-color: #95432f;
 }

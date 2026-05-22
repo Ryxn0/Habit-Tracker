@@ -4,86 +4,81 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { todayISO } from '@/lib/utils'
 import type { WorkoutSession, WorkoutExercise } from '@/types'
-import {
-  BarChart, Bar, XAxis, YAxis, Tooltip,
-  ResponsiveContainer, Cell,
-} from 'recharts'
+import { Play, RotateCcw, Plus, Award, Trash2, VolumeX, Volume2 } from 'lucide-react'
 
-const ACCENT = '#E94560'
-const CYAN   = '#22d3ee'
-const PINK   = '#f472b6'
+const ACCENT = '#95432f'
 
-interface ChartDay { day: string; date: string; volume: number }
+const PRESET_ROUTINES = [
+  {
+    name: 'Serene Sculpt (Upper Body)',
+    difficulty: 'Balanced',
+    duration: '45 mins',
+    exercises: ['Somatic DB Incline Press', 'Scapular Dumbbell Row', 'Lateral Raise Flyes', 'Mindful Pushups'],
+  },
+  {
+    name: 'Kinetic Core (Abs & Conditioning)',
+    difficulty: 'Moderate',
+    duration: '30 mins',
+    exercises: ['Breathing Planks', 'Decline Core Crunches', 'Subtle Russian Twists', 'Somatic Leg Raises'],
+  },
+  {
+    name: 'Earth Foundations (Lower Body)',
+    difficulty: 'Deep',
+    duration: '50 mins',
+    exercises: ['Goblet Squats (Controlled)', 'Split Romanian Deadlifts', 'Earth Grounded Calf Raises'],
+  },
+]
 
 interface Props { userId: string }
 
 export default function GymTab({ userId }: Props) {
-  const [session,       setSession]       = useState<WorkoutSession | null>(null)
-  const [exercises,     setExercises]     = useState<WorkoutExercise[]>([])
-  const [weekData,      setWeekData]      = useState<{ day: string; volume: number }[]>([])
-  const [sessionName,   setSessionName]   = useState('')
-  const [starting,      setStarting]      = useState(false)
-  const [showExForm,    setShowExForm]    = useState(false)
-  const [savingEx,      setSavingEx]      = useState(false)
+  const [session,     setSession]     = useState<WorkoutSession | null>(null)
+  const [exercises,   setExercises]   = useState<WorkoutExercise[]>([])
+  const [sessionName, setSessionName] = useState('')
+  const [starting,    setStarting]    = useState(false)
+  const [showExForm,  setShowExForm]  = useState(false)
+  const [savingEx,    setSavingEx]    = useState(false)
   const [exForm, setExForm] = useState({ name: '', sets: '3', reps: '10', weight_kg: '0' })
+
+  // Rest timer
+  const [timerSecs, setTimerSecs] = useState(60)
+  const [timerRunning, setTimerRunning] = useState(false)
+  const [timerMuted, setTimerMuted] = useState(false)
 
   const today = todayISO()
   const sb    = createClient()
 
   useEffect(() => { load() }, [userId])
 
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | null = null
+    if (timerRunning && timerSecs > 0) {
+      interval = setInterval(() => setTimerSecs(s => s - 1), 1000)
+    } else if (timerSecs === 0) {
+      setTimerRunning(false)
+      if (!timerMuted) alert('Rest finished. Proceed with meditative awareness.')
+      setTimerSecs(60)
+    }
+    return () => { if (interval) clearInterval(interval) }
+  }, [timerRunning, timerSecs, timerMuted])
+
   async function load() {
     const { data: sessions } = await sb.from('workout_sessions').select('*')
       .eq('user_id', userId).eq('date', today).order('created_at').limit(1)
     const todaySess = sessions?.[0] as WorkoutSession | undefined ?? null
     setSession(todaySess)
-
     if (todaySess) {
       const { data: exs } = await sb.from('workout_exercises').select('*')
         .eq('session_id', todaySess.id).order('created_at')
       setExercises((exs ?? []) as WorkoutExercise[])
     }
-
-    // Build 7-day volume chart
-    const days: ChartDay[] = Array.from({ length: 7 }, (_, i) => {
-      const d = new Date()
-      d.setDate(d.getDate() - (6 - i))
-      return {
-        day:    d.toLocaleDateString('en', { weekday: 'short' }),
-        date:   d.toISOString().split('T')[0],
-        volume: 0,
-      }
-    })
-
-    const { data: sessions7 } = await sb.from('workout_sessions')
-      .select('id, date')
-      .eq('user_id', userId)
-      .gte('date', days[0].date)
-      .lte('date', today)
-
-    if (sessions7 && sessions7.length > 0) {
-      const ids = sessions7.map((s: { id: string }) => s.id)
-      const { data: exs7 } = await sb.from('workout_exercises')
-        .select('session_id, sets, reps, weight_kg')
-        .in('session_id', ids)
-
-      if (exs7) {
-        exs7.forEach((e: { session_id: string; sets: number; reps: number; weight_kg: number }) => {
-          const sess = sessions7.find((s: { id: string }) => s.id === e.session_id) as { id: string; date: string } | undefined
-          if (!sess) return
-          const idx = days.findIndex(d => d.date === sess.date)
-          if (idx >= 0) days[idx].volume += e.sets * e.reps * Number(e.weight_kg)
-        })
-      }
-    }
-    setWeekData(days.map(d => ({ day: d.day, volume: Math.round(d.volume) })))
   }
 
-  async function startSession() {
+  async function startSession(name?: string) {
     setStarting(true)
-    const name = sessionName.trim() || 'Workout'
+    const finalName = name || sessionName.trim() || 'Workout'
     const { data } = await sb.from('workout_sessions')
-      .insert({ user_id: userId, date: today, name, notes: '' })
+      .insert({ user_id: userId, date: today, name: finalName, notes: '' })
       .select().single()
     if (data) { setSession(data as WorkoutSession); setExercises([]) }
     setSessionName('')
@@ -95,18 +90,21 @@ export default function GymTab({ userId }: Props) {
     if (!session) return
     setSavingEx(true)
     const { data } = await sb.from('workout_exercises').insert({
-      session_id: session.id,
-      user_id:    userId,
-      name:       exForm.name,
-      sets:       parseInt(exForm.sets)        || 1,
-      reps:       parseInt(exForm.reps)        || 0,
-      weight_kg:  parseFloat(exForm.weight_kg) || 0,
+      session_id: session.id, user_id: userId,
+      name: exForm.name,
+      sets: parseInt(exForm.sets) || 1,
+      reps: parseInt(exForm.reps) || 0,
+      weight_kg: parseFloat(exForm.weight_kg) || 0,
     }).select().single()
-    if (data) setExercises(prev => [...prev, data as WorkoutExercise])
+    if (data) {
+      setExercises(prev => [...prev, data as WorkoutExercise])
+      setTimerSecs(60)
+      setTimerRunning(true)
+    }
     setExForm({ name: '', sets: '3', reps: '10', weight_kg: '0' })
     setShowExForm(false)
     setSavingEx(false)
-    load() // refresh chart
+    load()
   }
 
   async function deleteExercise(id: string) {
@@ -115,116 +113,174 @@ export default function GymTab({ userId }: Props) {
     load()
   }
 
-  const totalVolume  = exercises.reduce((s, e) => s + e.sets * e.reps * Number(e.weight_kg), 0)
-  const totalSets    = exercises.reduce((s, e) => s + e.sets, 0)
+  const totalVolume = exercises.reduce((s, e) => s + e.sets * e.reps * Number(e.weight_kg), 0)
+  const totalSets   = exercises.reduce((s, e) => s + e.sets, 0)
 
-  const inputCls = 'bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-white placeholder:text-zinc-600 focus:outline-none focus:border-blue-400/60 text-sm'
+  const card: React.CSSProperties = {
+    background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: '1px solid rgba(255,255,255,0.55)', borderRadius: 22, padding: '24px',
+  }
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%', padding: '9px 13px', borderRadius: 12, fontSize: 13,
+    fontFamily: 'var(--font-body)', background: 'rgba(255,255,255,0.8)',
+    border: '1px solid rgba(219,193,187,0.4)', outline: 'none', color: '#1d1b15',
+    boxSizing: 'border-box', transition: 'border-color 0.15s',
+  }
 
   return (
-    <div className="space-y-5 animate-fade-in">
+    <div className="space-y-8 animate-fade-in">
 
-      {/* ── Weekly volume chart ────────────────────────────────────── */}
-      <div className="rounded-xl p-5" style={{ background: '#141E33', border: '1px solid #1E2D4E' }}>
-        <div className="text-xs font-mono uppercase tracking-widest mb-4" style={{ color: '#4B5563' }}>
-          Weekly Volume (sets × reps × kg)
-        </div>
-        <div style={{ height: 130 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={weekData} barSize={28} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-              <XAxis dataKey="day" tick={{ fill: '#4B5563', fontSize: 10 }} axisLine={false} tickLine={false} />
-              <YAxis hide />
-              <Tooltip
-                contentStyle={{ background: '#0F1829', border: '1px solid #1E2D4E', borderRadius: 8, fontSize: 12 }}
-                labelStyle={{ color: '#9CA3AF' }}
-                cursor={{ fill: 'rgba(255,255,255,0.03)' }}
-                formatter={(v) => [`${Number(v).toLocaleString()} kg`, 'Volume']}
-              />
-              <Bar dataKey="volume" radius={[4, 4, 0, 0]}>
-                {weekData.map((d, i) => (
-                  <Cell key={i} fill={i === weekData.length - 1 ? CYAN : '#1E2D4E'} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+      {!session ? (
+        /* ── No session: pick routine or start custom ─────────────── */
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-8 space-y-6">
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.15em', color: '#88726d', fontWeight: 700 }}>Select a Companion Routine</p>
 
-      {/* ── Today's session ───────────────────────────────────────── */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <span className="font-display text-xl text-white">
-            {session ? session.name : "Today's Workout"}
-          </span>
-          {session && (
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-mono" style={{ color: '#4B5563' }}>
-                {totalSets} sets · {Math.round(totalVolume).toLocaleString()} kg volume
-              </span>
-              <button
-                onClick={() => setShowExForm(v => !v)}
-                className="text-sm px-4 py-2 rounded-lg font-semibold transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
-                style={{ background: showExForm ? '#1E2D4E' : ACCENT, color: '#fff' }}>
-                {showExForm ? 'Cancel' : '+ Add exercise'}
-              </button>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {PRESET_ROUTINES.map(routine => (
+                <div
+                  key={routine.name}
+                  style={{ ...card, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: 220, cursor: 'default', padding: '22px' }}
+                >
+                  <div>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#88726d', background: '#f9f3e9', padding: '3px 10px', borderRadius: 999, border: '1px solid rgba(219,193,187,0.3)', display: 'inline-block', marginBottom: 12 }}>
+                      {routine.difficulty}
+                    </span>
+                    <h4 style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 700, color: '#1d1b15', lineHeight: 1.2, margin: '0 0 8px' }}>{routine.name}</h4>
+                    <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#88726d', margin: 0 }}>{routine.exercises.length} key exercises · {routine.duration}</p>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
+                    <button
+                      onClick={() => startSession(routine.name)}
+                      disabled={starting}
+                      style={{
+                        width: 38, height: 38, borderRadius: '50%', background: ACCENT, border: 'none',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: starting ? 'default' : 'pointer', transition: 'all 0.2s',
+                        opacity: starting ? 0.6 : 1,
+                      }}
+                      onMouseEnter={e => { if (!starting) { (e.currentTarget as HTMLButtonElement).style.background = '#7a2f1c'; (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.08)' } }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = ACCENT; (e.currentTarget as HTMLButtonElement).style.transform = '' }}
+                    >
+                      <Play size={14} color="white" fill="white" style={{ marginLeft: 2 }} />
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-          )}
-        </div>
 
-        {/* No session yet */}
-        {!session ? (
-          <div className="rounded-xl p-6 border border-dashed border-border text-center">
-            <p className="text-muted text-sm mb-4">No workout logged today</p>
-            <div className="flex items-center justify-center gap-3 max-w-xs mx-auto">
-              <input
-                type="text"
-                placeholder="Session name (e.g. Pull day)"
-                value={sessionName}
-                onChange={e => setSessionName(e.target.value)}
-                className={`flex-1 ${inputCls}`}
-                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); startSession() } }}
-              />
-              <button
-                onClick={startSession} disabled={starting}
-                className="text-sm px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 flex-shrink-0"
-                style={{ background: `linear-gradient(135deg, ${ACCENT}, #9b2335)`, color: '#fff', boxShadow: '0 0 20px rgba(233,69,96,0.3)' }}>
-                {starting ? 'Starting...' : 'Start'}
-              </button>
+            {/* Custom session start */}
+            <div style={{ ...card, padding: '20px' }}>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#55443d', marginBottom: 12 }}>Or start a custom session:</p>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <input
+                  type="text" placeholder="Session name (e.g. Pull day)"
+                  value={sessionName}
+                  onChange={e => setSessionName(e.target.value)}
+                  style={{ ...inputStyle, flex: 1 }}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); startSession() } }}
+                  onFocus={e => { (e.currentTarget as HTMLInputElement).style.borderColor = ACCENT }}
+                  onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = 'rgba(219,193,187,0.4)' }}
+                />
+                <button
+                  onClick={() => startSession()} disabled={starting}
+                  style={{
+                    padding: '9px 20px', borderRadius: 999, fontSize: 13, fontWeight: 700,
+                    fontFamily: 'var(--font-body)', background: ACCENT, color: '#fff',
+                    border: 'none', cursor: starting ? 'default' : 'pointer', flexShrink: 0,
+                    opacity: starting ? 0.6 : 1, transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={e => { if (!starting) (e.currentTarget as HTMLButtonElement).style.background = '#7a2f1c' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = ACCENT }}
+                >
+                  {starting ? 'Starting...' : 'Start'}
+                </button>
+              </div>
             </div>
           </div>
-        ) : (
-          <>
+
+          <div className="lg:col-span-4" style={{ ...card, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', gap: 14 }}>
+            <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#f9f3e9', border: '1px solid rgba(219,193,187,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Award size={24} color={ACCENT} />
+            </div>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: '#1d1b15', fontSize: 18, margin: 0 }}>Continuous Sculpt</h3>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#55443d', lineHeight: 1.65, margin: 0 }}>
+              Every somatic rep checked primes down tension, increases muscular alignment, and reinforces clean, intentional energy flow.
+            </p>
+          </div>
+        </div>
+      ) : (
+        /* ── Active session ───────────────────────────────────────── */
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-scale-up">
+          <div className="lg:col-span-8 space-y-5">
+            {/* Session header */}
+            <div style={{ ...card, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: 14 }}>
+              <div>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', color: ACCENT, fontWeight: 700 }}>Active Session</span>
+                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 800, color: '#1d1b15', margin: '4px 0 0', letterSpacing: '-0.02em' }}>{session.name}</h3>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  onClick={() => { if (confirm('End this session?')) { setSession(null); setExercises([]) } }}
+                  style={{ padding: '8px 16px', borderRadius: 999, fontSize: 12, fontWeight: 600, fontFamily: 'var(--font-body)', background: 'none', border: '1px solid rgba(219,193,187,0.6)', color: '#55443d', cursor: 'pointer', transition: 'all 0.2s' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#ef4444'; (e.currentTarget as HTMLButtonElement).style.color = '#ef4444' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(219,193,187,0.6)'; (e.currentTarget as HTMLButtonElement).style.color = '#55443d' }}
+                >
+                  End
+                </button>
+                <button
+                  onClick={() => setShowExForm(v => !v)}
+                  style={{ padding: '8px 20px', borderRadius: 999, fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-body)', background: showExForm ? '#f3ede3' : ACCENT, color: showExForm ? '#55443d' : '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}
+                >
+                  {showExForm ? 'Cancel' : '+ Add exercise'}
+                </button>
+              </div>
+            </div>
+
             {/* Add exercise form */}
             {showExForm && (
-              <form onSubmit={addExercise}
-                className="rounded-xl p-4 mb-4 space-y-3 animate-slide-up"
-                style={{ background: '#141E33', border: '1px solid #1E2D4E' }}>
-
-                <input type="text" placeholder="Exercise name (e.g. Bench Press)" required
-                  value={exForm.name}
-                  onChange={e => setExForm(f => ({ ...f, name: e.target.value }))}
-                  className={`w-full ${inputCls}`}
-                />
-
-                <div className="grid grid-cols-3 gap-2">
-                  {([
-                    { field: 'sets',      label: 'Sets'   },
-                    { field: 'reps',      label: 'Reps'   },
-                    { field: 'weight_kg', label: 'Weight (kg)' },
-                  ] as const).map(({ field, label }) => (
+              <form
+                onSubmit={addExercise}
+                className="animate-slide-up"
+                style={{ ...card, padding: '20px' }}
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+                  <div>
+                    <label style={{ fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#55443d', display: 'block', marginBottom: 5, fontWeight: 600 }}>Exercise</label>
+                    <input
+                      type="text" required placeholder="e.g. Somatic cable flyes"
+                      value={exForm.name}
+                      onChange={e => setExForm(f => ({ ...f, name: e.target.value }))}
+                      style={inputStyle}
+                      onFocus={e => { (e.currentTarget as HTMLInputElement).style.borderColor = ACCENT }}
+                      onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = 'rgba(219,193,187,0.4)' }}
+                    />
+                  </div>
+                  {([['sets', 'Sets'], ['reps', 'Reps'], ['weight_kg', 'Weight kg']] as const).map(([field, label]) => (
                     <div key={field}>
-                      <label className="block text-xs text-muted mb-1">{label}</label>
-                      <input type="number" step="any" min="0"
-                        value={exForm[field]}
+                      <label style={{ fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#55443d', display: 'block', marginBottom: 5, fontWeight: 600 }}>{label}</label>
+                      <input
+                        type="number" min="0" value={exForm[field]}
                         onChange={e => setExForm(f => ({ ...f, [field]: e.target.value }))}
-                        className={`${inputCls} w-full text-center`}
+                        style={{ ...inputStyle, textAlign: 'center' }}
+                        onFocus={e => { (e.currentTarget as HTMLInputElement).style.borderColor = ACCENT }}
+                        onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = 'rgba(219,193,187,0.4)' }}
                       />
                     </div>
                   ))}
                 </div>
-
-                <button type="submit" disabled={savingEx}
-                  className="w-full py-2.5 rounded-xl font-semibold text-sm text-white transition-all duration-200 hover:-translate-y-0.5 active:scale-95 disabled:opacity-50"
-                  style={{ background: `linear-gradient(135deg, ${CYAN}88, ${CYAN}55)`, border: `1px solid ${CYAN}44`, color: CYAN }}>
+                <button
+                  type="submit" disabled={savingEx}
+                  style={{
+                    width: '100%', marginTop: 12, padding: '10px', borderRadius: 12, fontSize: 13, fontWeight: 700,
+                    fontFamily: 'var(--font-body)', background: ACCENT, color: '#fff', border: 'none',
+                    cursor: savingEx ? 'default' : 'pointer', opacity: savingEx ? 0.6 : 1, transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={e => { if (!savingEx) (e.currentTarget as HTMLButtonElement).style.background = '#7a2f1c' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = ACCENT }}
+                >
                   {savingEx ? 'Logging...' : 'Log exercise'}
                 </button>
               </form>
@@ -232,57 +288,112 @@ export default function GymTab({ userId }: Props) {
 
             {/* Exercise list */}
             {exercises.length === 0 ? (
-              <div className="flex flex-col items-center py-10 border border-dashed border-border rounded-xl">
-                <p className="text-muted text-sm mb-3">No exercises yet</p>
-                <button onClick={() => setShowExForm(true)} className="text-sm" style={{ color: ACCENT }}>
+              <div style={{ textAlign: 'center', padding: 40, background: 'rgba(255,255,255,0.3)', borderRadius: 16, border: '1px dashed rgba(219,193,187,0.5)' }}>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#88726d', margin: '0 0 12px' }}>No exercises yet</p>
+                <button onClick={() => setShowExForm(true)} style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: ACCENT, background: 'none', border: 'none', cursor: 'pointer' }}>
                   Add your first exercise →
                 </button>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {exercises.map((ex, i) => {
                   const vol = ex.sets * ex.reps * Number(ex.weight_kg)
                   return (
-                    <div key={ex.id}
-                      className="flex items-center justify-between px-4 py-3 rounded-xl group animate-slide-up"
-                      style={{ background: '#ffffff', border: '1px solid #e5ddd4', animationDelay: `${i * 40}ms` }}>
+                    <div
+                      key={ex.id}
+                      className="animate-slide-up group"
+                      style={{ padding: '14px 18px', background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(219,193,187,0.2)', borderRadius: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', animationDelay: `${i * 40}ms` }}
+                    >
                       <div>
-                        <span className="text-sm font-medium text-gray-200">{ex.name}</span>
-                        <div className="text-xs mt-0.5 font-mono" style={{ color: '#4B5563' }}>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 700, color: '#1d1b15' }}>{ex.name}</span>
+                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#88726d', marginTop: 2 }}>
                           {ex.sets} × {ex.reps} @ {Number(ex.weight_kg)}kg
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-mono" style={{ color: CYAN }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: '#88726d' }}>
                           {Math.round(vol).toLocaleString()} kg
                         </span>
                         <button
                           onClick={() => deleteExercise(ex.id)}
-                          className="opacity-0 group-hover:opacity-100 text-muted hover:text-red-400 transition-all text-base leading-none">
-                          ✕
+                          style={{ padding: 6, borderRadius: '50%', background: 'none', border: 'none', cursor: 'pointer', color: '#88726d', transition: 'all 0.15s', opacity: 0 }}
+                          className="group-hover:opacity-100"
+                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.08)'; (e.currentTarget as HTMLButtonElement).style.color = '#ef4444'; (e.currentTarget as HTMLButtonElement).style.opacity = '1' }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none'; (e.currentTarget as HTMLButtonElement).style.color = '#88726d' }}
+                        >
+                          <Trash2 size={13} />
                         </button>
                       </div>
                     </div>
                   )
                 })}
 
-                {/* Session totals */}
-                <div className="flex justify-end gap-6 pt-2 px-1">
-                  <span className="text-xs font-mono" style={{ color: '#4B5563' }}>
-                    {exercises.length} exercise{exercises.length !== 1 ? 's' : ''}
-                  </span>
-                  <span className="text-xs font-mono" style={{ color: PINK }}>
-                    {totalSets} total sets
-                  </span>
-                  <span className="text-xs font-mono" style={{ color: CYAN }}>
-                    {Math.round(totalVolume).toLocaleString()} kg volume
-                  </span>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 20, paddingTop: 4, paddingRight: 4 }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#88726d' }}>{exercises.length} exercise{exercises.length !== 1 ? 's' : ''}</span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#55443d', fontWeight: 700 }}>{totalSets} total sets</span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: ACCENT, fontWeight: 700 }}>{Math.round(totalVolume).toLocaleString()} kg volume</span>
                 </div>
               </div>
             )}
-          </>
-        )}
-      </div>
+          </div>
+
+          {/* ── Rest timer ──────────────────────────────────────────── */}
+          <div className="lg:col-span-4">
+            <div
+              style={{ ...card, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, position: 'relative', overflow: 'hidden', padding: '32px 24px' }}
+            >
+              {timerRunning && (
+                <div style={{ position: 'absolute', width: 140, height: 140, border: '1px solid rgba(149,67,47,0.15)', borderRadius: '50%', animation: 'ping 1.5s ease-in-out infinite', pointerEvents: 'none', opacity: 0.3 }} />
+              )}
+
+              <div>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.15em', color: '#88726d', fontWeight: 700, display: 'block', marginBottom: 4 }}>Somatic Rest Interval</span>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#55443d', margin: 0 }}>Recommended recovery between sets</p>
+              </div>
+
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 56, fontWeight: 800, color: '#1d1b15', letterSpacing: '-0.03em', lineHeight: 1 }}>
+                00:{String(timerSecs).padStart(2, '0')}
+              </div>
+
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button
+                  onClick={() => setTimerRunning(v => !v)}
+                  style={{ padding: '10px 22px', borderRadius: 999, fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-body)', background: ACCENT, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#7a2f1c' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = ACCENT }}
+                >
+                  {timerRunning ? 'Pause' : 'Start rest'}
+                </button>
+                <button
+                  onClick={() => { setTimerRunning(false); setTimerSecs(60) }}
+                  style={{ padding: 10, borderRadius: '50%', background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(219,193,187,0.45)', cursor: 'pointer', color: '#55443d', transition: 'all 0.15s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#f3ede3' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.7)' }}
+                >
+                  <RotateCcw size={16} />
+                </button>
+              </div>
+
+              <button
+                onClick={() => setTimerMuted(v => !v)}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-mono)', fontSize: 11, color: '#88726d', transition: 'color 0.15s' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#1d1b15' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#88726d' }}
+              >
+                {timerMuted ? <VolumeX size={13} /> : <Volume2 size={13} />}
+                {timerMuted ? 'Muted' : 'Alert active'}
+              </button>
+
+              <div style={{ width: '100%', borderTop: '1px solid rgba(219,193,187,0.3)', paddingTop: 16, textAlign: 'center' }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', color: ACCENT, fontWeight: 700, display: 'block', marginBottom: 6 }}>Pacing Cadence</span>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#55443d', fontStyle: 'italic', margin: 0 }}>
+                  "Exhale slowly during contraction, inhale deeply upon releasing the weight."
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

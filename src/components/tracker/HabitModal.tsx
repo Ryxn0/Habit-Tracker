@@ -72,32 +72,49 @@ export default function HabitModal({ habit, defaultType, month, year, onSave, on
     setSaving(false)
   }
 
+  const inputStyle: React.CSSProperties = {
+    width: '100%', padding: '10px 14px', borderRadius: 12, fontSize: 13,
+    fontFamily: 'var(--font-body)', background: 'rgba(249,243,233,0.8)',
+    border: '1px solid rgba(219,193,187,0.4)', outline: 'none',
+    color: '#1d1b15', boxSizing: 'border-box', transition: 'border-color 0.15s',
+  }
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(29,27,21,0.3)', backdropFilter: 'blur(8px)' }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="card w-full max-w-lg animate-slide-up">
-        <h2 className="font-display text-xl text-white mb-5">
+      <div
+        className="w-full max-w-lg animate-slide-up"
+        style={{
+          background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(32px)',
+          WebkitBackdropFilter: 'blur(32px)',
+          border: '1px solid rgba(219,193,187,0.45)', borderRadius: 24, padding: '28px 32px',
+        }}
+      >
+        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 800, color: '#95432f', marginBottom: 20, letterSpacing: '-0.02em' }}>
           {isEditing ? 'Edit Habit' : `Add ${type === 'daily' ? 'Daily' : 'Weekly'} Habit`}
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
           {/* Type toggle — add mode only */}
           {!isEditing && (
-            <div className="flex gap-2">
+            <div style={{ display: 'flex', gap: 8 }}>
               {(['daily', 'weekly'] as HabitType[]).map(t => (
                 <button
                   key={t}
                   type="button"
                   onClick={() => handleTypeChange(t)}
-                  className={cn(
-                    'flex-1 py-2 rounded-lg border text-sm capitalize transition-colors',
-                    type === t
-                      ? 'bg-accent/20 border-accent text-white'
-                      : 'border-border text-muted hover:border-subtle hover:text-subtle'
-                  )}
+                  style={{
+                    flex: 1, padding: '8px', borderRadius: 10, fontSize: 13, fontWeight: 600,
+                    fontFamily: 'var(--font-body)', textTransform: 'capitalize', cursor: 'pointer',
+                    background: type === t ? 'rgba(149,67,47,0.1)' : 'transparent',
+                    border: `1px solid ${type === t ? '#95432f' : 'rgba(219,193,187,0.5)'}`,
+                    color: type === t ? '#95432f' : '#55443d',
+                    transition: 'all 0.15s',
+                  }}
                 >
                   {t}
                 </button>
@@ -105,24 +122,25 @@ export default function HabitModal({ habit, defaultType, month, year, onSave, on
             </div>
           )}
 
-          {/* Preset chips — add mode only */}
+          {/* Preset chips */}
           {!isEditing && (
             <div>
-              <p className="text-muted text-xs font-mono uppercase tracking-widest mb-3">
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#88726d', fontWeight: 700, marginBottom: 10 }}>
                 Quick add
               </p>
-              <div className="flex flex-wrap gap-2">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {presets.map(preset => (
                   <button
                     key={preset}
                     type="button"
                     onClick={() => pickPreset(preset)}
-                    className={cn(
-                      'px-3 py-1.5 rounded-lg text-sm border transition-all duration-150 hover:scale-105 active:scale-95',
-                      selected === preset
-                        ? 'bg-accent/20 border-accent text-white'
-                        : 'border-border text-muted hover:border-subtle hover:text-white'
-                    )}
+                    style={{
+                      padding: '5px 12px', borderRadius: 999, fontSize: 12, cursor: 'pointer',
+                      fontFamily: 'var(--font-body)', fontWeight: 500, transition: 'all 0.15s',
+                      background: selected === preset ? 'rgba(149,67,47,0.1)' : 'rgba(249,243,233,0.8)',
+                      border: `1px solid ${selected === preset ? '#95432f' : 'rgba(219,193,187,0.4)'}`,
+                      color: selected === preset ? '#95432f' : '#55443d',
+                    }}
                   >
                     {preset}
                   </button>
@@ -133,54 +151,73 @@ export default function HabitModal({ habit, defaultType, month, year, onSave, on
 
           {/* Name input */}
           <div>
-            <label className="text-subtle text-sm block mb-1.5">
+            <label style={{ fontFamily: 'var(--font-mono)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#55443d', display: 'block', marginBottom: 8, fontWeight: 600 }}>
               {isEditing ? 'Name' : 'Or type your own'}
             </label>
             <input
-              className="input"
+              style={inputStyle}
               value={name}
               onChange={e => handleNameChange(e.target.value)}
               placeholder="e.g. Read for 10 minutes"
               autoFocus={isEditing}
               required
               maxLength={80}
+              onFocus={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#95432f' }}
+              onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = 'rgba(219,193,187,0.4)' }}
             />
           </div>
 
           {/* Monthly goal — weekly only */}
           {type === 'weekly' && (
             <div>
-              <label className="text-subtle text-sm block mb-1.5">
-                Monthly goal
-                <span className="text-muted ml-1 text-xs">times this month</span>
+              <label style={{ fontFamily: 'var(--font-mono)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#55443d', display: 'block', marginBottom: 8, fontWeight: 600 }}>
+                Monthly goal <span style={{ color: '#88726d', fontWeight: 400 }}>— times this month</span>
               </label>
               <input
                 type="number"
-                className="input"
+                style={inputStyle}
                 min={1}
                 max={daysInMonth}
                 value={goal}
                 onChange={e => setGoal(Math.max(1, Math.min(daysInMonth, Number(e.target.value))))}
+                onFocus={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#95432f' }}
+                onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = 'rgba(219,193,187,0.4)' }}
               />
             </div>
           )}
 
           {/* Error */}
           {error && (
-            <div className="text-sm px-3 py-2 rounded-lg" style={{ background: '#f4725620', border: '1px solid #f47256', color: '#fca5a5' }}>
+            <div style={{ fontSize: 13, padding: '10px 14px', borderRadius: 10, background: 'rgba(149,67,47,0.08)', border: '1px solid rgba(149,67,47,0.2)', color: '#95432f' }}>
               {error}
             </div>
           )}
 
           {/* Actions */}
-          <div className="flex gap-3 pt-1">
-            <button type="button" onClick={onClose} className="btn-ghost flex-1">
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button
+              type="button" onClick={onClose}
+              style={{
+                flex: 1, padding: '11px', borderRadius: 999, fontSize: 13, fontWeight: 600,
+                fontFamily: 'var(--font-body)', cursor: 'pointer', transition: 'all 0.15s',
+                background: 'transparent', border: '1px solid rgba(219,193,187,0.6)', color: '#55443d',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#f3ede3' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+            >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!name.trim() || saving}
-              className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                flex: 1, padding: '11px', borderRadius: 999, fontSize: 13, fontWeight: 700,
+                fontFamily: 'var(--font-body)', cursor: !name.trim() || saving ? 'default' : 'pointer',
+                background: '#95432f', color: '#fff', border: 'none', transition: 'all 0.2s',
+                opacity: !name.trim() || saving ? 0.5 : 1,
+              }}
+              onMouseEnter={e => { if (name.trim() && !saving) (e.currentTarget as HTMLButtonElement).style.background = '#7a2f1c' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#95432f' }}
             >
               {saving ? 'Saving...' : isEditing ? 'Save Changes' : 'Add Habit'}
             </button>
