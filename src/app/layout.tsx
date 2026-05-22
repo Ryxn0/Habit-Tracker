@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { DM_Serif_Display, DM_Sans, DM_Mono } from 'next/font/google'
+import { DM_Serif_Display, Inter, DM_Mono } from 'next/font/google'
 import './globals.css'
 
 const display = DM_Serif_Display({
@@ -8,7 +8,7 @@ const display = DM_Serif_Display({
   variable: '--font-display',
 })
 
-const body = DM_Sans({
+const body = Inter({
   subsets: ['latin'],
   variable: '--font-body',
 })
