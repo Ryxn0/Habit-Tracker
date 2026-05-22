@@ -213,8 +213,8 @@ function HabitSection({ title, type, habits, onAdd, countDone, ...rest }: Sectio
         </div>
       ) : (
         <div className="space-y-2">
-          {habits.map(h => (
-            <HabitCard key={h.id} habit={h} type={type} countDone={countDone} {...rest} />
+          {habits.map((h, i) => (
+            <HabitCard key={h.id} habit={h} type={type} countDone={countDone} index={i} {...rest} />
           ))}
         </div>
       )}
@@ -231,6 +231,7 @@ interface CardProps {
   year:    number
   today:   string
   numDays: number
+  index:   number
   isCompleted: (id: string, date: string) => boolean
   countDone:   (id: string) => number
   getStreak:   (id: string) => number
@@ -241,7 +242,7 @@ interface CardProps {
 }
 
 function HabitCard({
-  habit, type, month, year, today, numDays,
+  habit, type, month, year, today, numDays, index,
   isCompleted, countDone, getStreak, toggle, loading,
   onEdit, onDelete,
 }: CardProps) {
@@ -250,7 +251,10 @@ function HabitCard({
   const streak = getStreak(habit.id)
 
   return (
-    <div className="group rounded-xl border border-border bg-card hover:bg-surface px-4 py-3.5 transition-colors duration-200">
+    <div
+      className="group habit-card animate-slide-up"
+      style={{ animationDelay: `${index * 55}ms` }}
+    >
 
       {/* ── Header row ── */}
       <div className="flex items-center gap-3 mb-3">
@@ -291,7 +295,7 @@ function HabitCard({
                 onClick={() => toggle(habit.id, date)}
                 disabled={fut || loading === lkey}
                 title={`${month}/${d}`}
-                className="flex flex-col items-center flex-shrink-0"
+                className="flex flex-col items-center flex-shrink-0 active:scale-90 transition-transform duration-100"
                 style={{ gap: 2, opacity: fut ? 0.2 : 1, cursor: fut ? 'default' : 'pointer' }}
               >
                 <span style={{
@@ -308,7 +312,7 @@ function HabitCard({
                   transition: 'all 0.15s',
                 }}>
                   {tick && (
-                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none" className="animate-pop">
                       <path d="M1 4L3.5 6.5L9 1" stroke={ACCENT} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   )}
@@ -345,10 +349,15 @@ function HabitCard({
                     cursor: fut ? 'default' : 'pointer',
                     opacity: fut ? 0.2 : 1,
                     transition: 'all 0.15s',
+                    transform: 'scale(1)',
                   }}
+                  onMouseEnter={e => { if (!fut) (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.08)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)' }}
+                  onMouseDown={e =>  { if (!fut) (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.92)' }}
+                  onMouseUp={e =>    { if (!fut) (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.08)' }}
                 >
                   {tick && (
-                    <svg width="14" height="11" viewBox="0 0 14 11" fill="none">
+                    <svg width="14" height="11" viewBox="0 0 14 11" fill="none" className="animate-pop">
                       <path d="M1 5.5L5 9.5L13 1" stroke={ACCENT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   )}
@@ -478,7 +487,7 @@ function Btn({ onClick, title, danger, children }: {
     <button
       onClick={onClick}
       title={title}
-      className="w-9 h-9 flex items-center justify-center rounded text-muted hover:text-white transition-colors duration-150"
+      className="w-9 h-9 flex items-center justify-center rounded text-muted hover:text-white transition-all duration-150 hover:scale-125 active:scale-95"
       style={{ fontSize: 17, background: 'none', border: 'none', cursor: 'pointer' }}
       onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = danger ? '#f87171' : '#fff' }}
       onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '' }}

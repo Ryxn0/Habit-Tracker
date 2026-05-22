@@ -22,7 +22,8 @@
 @layer components {
   .btn-primary {
     @apply bg-accent hover:bg-accent/90 text-white font-semibold px-6 py-3 rounded-lg
-           transition-all duration-200 active:scale-95 cursor-pointer;
+           transition-all duration-200 active:scale-95 cursor-pointer
+           hover:shadow-[0_0_20px_rgba(233,69,96,0.35)];
   }
 
   .btn-ghost {
@@ -37,6 +38,16 @@
   .input {
     @apply bg-surface border border-border rounded-lg px-4 py-3 text-white placeholder:text-muted
            focus:outline-none focus:border-accent transition-colors w-full;
+  }
+
+  .habit-card {
+    @apply rounded-xl border border-border bg-card px-4 py-3.5;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  }
+  .habit-card:hover {
+    background: theme('colors.surface');
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(233, 69, 96, 0.07), 0 2px 10px rgba(0, 0, 0, 0.35);
   }
 
   .habit-tick {

@@ -118,7 +118,7 @@ export default function HabitModal({ habit, defaultType, month, year, onSave, on
                     type="button"
                     onClick={() => pickPreset(preset)}
                     className={cn(
-                      'px-3 py-1.5 rounded-lg text-sm border transition-all duration-150',
+                      'px-3 py-1.5 rounded-lg text-sm border transition-all duration-150 hover:scale-105 active:scale-95',
                       selected === preset
                         ? 'bg-accent/20 border-accent text-white'
                         : 'border-border text-muted hover:border-subtle hover:text-white'
