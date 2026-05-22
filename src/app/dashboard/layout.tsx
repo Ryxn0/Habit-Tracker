@@ -5,7 +5,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen flex flex-col">
       {/* Top nav */}
-      <nav className="sticky top-0 z-50 backdrop-blur border-b" style={{ background: 'rgba(9,16,30,0.9)', borderColor: '#1E2D4E' }}>
+      <nav className="sticky top-0 z-50 backdrop-blur" style={{ background: 'rgba(9,16,30,0.92)', borderBottom: '1px solid rgba(30,45,78,0.8)', boxShadow: '0 1px 0 rgba(233,69,96,0.04), 0 4px 24px rgba(0,0,0,0.25)' }}>
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
           <Link href="/dashboard" style={{ fontFamily: 'monospace', fontSize: 14, fontWeight: 700, letterSpacing: '0.15em', color: '#fff' }}
             className="hover:text-[#22d3ee] transition-colors"
