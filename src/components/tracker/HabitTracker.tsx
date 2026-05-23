@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useCallback, type ReactNode } from 'react'
 import { getDaysInMonth } from 'date-fns'
@@ -18,8 +18,8 @@ import HabitModal from './HabitModal'
 import { createClient } from '@/lib/supabase/client'
 import { Flame, GripVertical, Pencil, Trash2, Plus } from 'lucide-react'
 
-const ACCENT = '#95432f'
-const ACCENT_MID = '#cc7055'
+const ACCENT = '#6366F1'
+const ACCENT_MID = '#818CF8'
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -231,7 +231,7 @@ function HabitSection({
             <div style={{ width: 3, height: 26, borderRadius: 2, background: ACCENT, flexShrink: 0 }} />
             <h2 style={{
               fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 800,
-              color: '#1d1b15', margin: 0, letterSpacing: '-0.02em',
+              color: '#0F172A', margin: 0, letterSpacing: '-0.02em',
             }}>
               {title}
             </h2>
@@ -240,9 +240,9 @@ function HabitSection({
           {/* Stats badge */}
           {habits.length > 0 && (
             <span style={{
-              fontFamily: 'var(--font-mono)', fontSize: 9.5, color: '#88726d',
-              background: 'rgba(219,193,187,0.2)', borderRadius: 999,
-              padding: '4px 11px', border: '1px solid rgba(219,193,187,0.35)',
+              fontFamily: 'var(--font-mono)', fontSize: 9.5, color: '#64748B',
+              background: 'rgba(100,116,139,0.2)', borderRadius: 999,
+              padding: '4px 11px', border: '1px solid rgba(100,116,139,0.35)',
               letterSpacing: '0.1em', fontWeight: 700, textTransform: 'uppercase',
             }}>
               {habits.length} habit{habits.length !== 1 ? 's' : ''} · {avgRate}% avg
@@ -260,18 +260,18 @@ function HabitSection({
               background: ACCENT, color: '#fff', border: 'none',
               fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 600,
               cursor: 'pointer', transition: 'all 0.2s',
-              boxShadow: '0 2px 10px rgba(149,67,47,0.2)',
+              boxShadow: '0 2px 10px rgba(99,102,241,0.2)',
             }}
             onMouseEnter={e => {
               const el = e.currentTarget as HTMLButtonElement
-              el.style.background = '#7a2f1c'
-              el.style.boxShadow = '0 4px 18px rgba(149,67,47,0.32)'
+              el.style.background = '#4F46E5'
+              el.style.boxShadow = '0 4px 18px rgba(99,102,241,0.32)'
               el.style.transform = 'translateY(-1px)'
             }}
             onMouseLeave={e => {
               const el = e.currentTarget as HTMLButtonElement
               el.style.background = ACCENT
-              el.style.boxShadow = '0 2px 10px rgba(149,67,47,0.2)'
+              el.style.boxShadow = '0 2px 10px rgba(99,102,241,0.2)'
               el.style.transform = ''
             }}
           >
@@ -286,22 +286,22 @@ function HabitSection({
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center',
           justifyContent: 'center', padding: '56px 24px', borderRadius: 20,
-          border: '1.5px dashed rgba(219,193,187,0.55)',
+          border: '1.5px dashed rgba(100,116,139,0.55)',
           background: 'rgba(255,255,255,0.4)',
           gap: 12,
         }}>
           <div style={{
             width: 48, height: 48, borderRadius: '50%',
-            background: 'rgba(149,67,47,0.06)', border: '1px solid rgba(149,67,47,0.12)',
+            background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.12)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             <Plus size={20} color={ACCENT} />
           </div>
           <div style={{ textAlign: 'center' }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 14, color: '#1d1b15', margin: '0 0 4px' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 14, color: '#0F172A', margin: '0 0 4px' }}>
               No {type} habits yet
             </p>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#88726d', margin: 0 }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#64748B', margin: 0 }}>
               Add your first one to start tracking
             </p>
           </div>
@@ -310,8 +310,8 @@ function HabitSection({
             style={{
               marginTop: 4, padding: '9px 22px', borderRadius: 999,
               fontSize: 13, fontWeight: 600, cursor: 'pointer',
-              border: '1px solid rgba(149,67,47,0.3)',
-              background: 'rgba(149,67,47,0.06)', color: ACCENT,
+              border: '1px solid rgba(99,102,241,0.3)',
+              background: 'rgba(99,102,241,0.06)', color: ACCENT,
               fontFamily: 'var(--font-body)', transition: 'all 0.15s',
             }}
             onMouseEnter={e => {
@@ -321,8 +321,8 @@ function HabitSection({
             }}
             onMouseLeave={e => {
               const el = e.currentTarget as HTMLButtonElement
-              el.style.background = 'rgba(149,67,47,0.06)'; el.style.color = ACCENT
-              el.style.borderColor = 'rgba(149,67,47,0.3)'
+              el.style.background = 'rgba(99,102,241,0.06)'; el.style.color = ACCENT
+              el.style.borderColor = 'rgba(99,102,241,0.3)'
             }}
           >
             Add your first {type} habit →
@@ -390,21 +390,21 @@ function HabitCard({
         backdropFilter: 'blur(14px)',
         WebkitBackdropFilter: 'blur(14px)',
         border: '1px solid rgba(255, 255, 255, 0.92)',
-        borderLeft: `3px solid ${hasStreak ? ACCENT : 'rgba(219,193,187,0.45)'}`,
+        borderLeft: `3px solid ${hasStreak ? ACCENT : 'rgba(100,116,139,0.45)'}`,
         borderRadius: 16,
-        boxShadow: `0 4px 20px rgba(149,67,47,${hasStreak ? '0.07' : '0.03'})`,
+        boxShadow: `0 4px 20px rgba(99,102,241,${hasStreak ? '0.07' : '0.03'})`,
         padding: '18px 22px',
       }}
       onMouseEnter={e => {
         if (!isDragging) {
           (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'
-          ;(e.currentTarget as HTMLDivElement).style.boxShadow = `0 10px 36px rgba(149,67,47,${hasStreak ? '0.12' : '0.07'})`
+          ;(e.currentTarget as HTMLDivElement).style.boxShadow = `0 10px 36px rgba(99,102,241,${hasStreak ? '0.12' : '0.07'})`
         }
       }}
       onMouseLeave={e => {
         if (!isDragging) {
           (e.currentTarget as HTMLDivElement).style.transform = ''
-          ;(e.currentTarget as HTMLDivElement).style.boxShadow = `0 4px 20px rgba(149,67,47,${hasStreak ? '0.07' : '0.03'})`
+          ;(e.currentTarget as HTMLDivElement).style.boxShadow = `0 4px 20px rgba(99,102,241,${hasStreak ? '0.07' : '0.03'})`
         }
       }}
     >
@@ -417,12 +417,12 @@ function HabitCard({
           title="Drag to reorder"
           style={{
             background: 'none', border: 'none', cursor: 'grab',
-            padding: '2px 4px', color: 'rgba(219,193,187,0.7)',
+            padding: '2px 4px', color: 'rgba(100,116,139,0.7)',
             flexShrink: 0, display: 'flex', alignItems: 'center',
             transition: 'color 0.15s',
             touchAction: 'none',
           }}
-          className="group-hover:[&]:!text-[rgba(149,67,47,0.4)]"
+          className="group-hover:[&]:!text-[rgba(99,102,241,0.4)]"
         >
           <GripVertical size={15} />
         </button>
@@ -430,7 +430,7 @@ function HabitCard({
         {/* Habit name */}
         <span style={{
           fontFamily: 'var(--font-body)', fontSize: 14.5, fontWeight: 600,
-          color: '#1d1b15', flex: 1, letterSpacing: '-0.01em',
+          color: '#0F172A', flex: 1, letterSpacing: '-0.01em',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>
           {habit.name}
@@ -440,12 +440,12 @@ function HabitCard({
         {hasStreak && (
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 4,
-            background: streak >= 7 ? 'rgba(149,67,47,0.11)' : 'rgba(204,112,85,0.09)',
+            background: streak >= 7 ? 'rgba(99,102,241,0.11)' : 'rgba(129,140,248,0.09)',
             color: streak >= 7 ? ACCENT : ACCENT_MID,
             borderRadius: 999, padding: '3px 9px',
             fontSize: 11, fontWeight: 700,
             fontFamily: 'var(--font-mono)', letterSpacing: '0.04em',
-            border: `1px solid ${streak >= 7 ? 'rgba(149,67,47,0.18)' : 'rgba(204,112,85,0.15)'}`,
+            border: `1px solid ${streak >= 7 ? 'rgba(99,102,241,0.18)' : 'rgba(129,140,248,0.15)'}`,
             flexShrink: 0,
           }}>
             <Flame size={11} />
@@ -499,7 +499,7 @@ function HabitCard({
                   {/* Day number */}
                   <span style={{
                     fontSize: 8.5, lineHeight: 1, fontFamily: 'monospace',
-                    color: isT ? ACCENT : '#88726d',
+                    color: isT ? ACCENT : '#64748B',
                     fontWeight: isT ? 700 : 400,
                   }}>
                     {d}
@@ -514,16 +514,16 @@ function HabitCard({
                       ? {
                           background: `linear-gradient(135deg, ${ACCENT_MID} 0%, ${ACCENT} 100%)`,
                           border: 'none',
-                          boxShadow: '0 2px 8px rgba(149,67,47,0.3)',
+                          boxShadow: '0 2px 8px rgba(99,102,241,0.3)',
                         }
                       : isT
                       ? {
-                          background: 'rgba(149,67,47,0.04)',
+                          background: 'rgba(99,102,241,0.04)',
                           border: `1.5px dashed ${ACCENT}`,
                         }
                       : {
                           background: 'transparent',
-                          border: '1.5px solid rgba(219,193,187,0.6)',
+                          border: '1.5px solid rgba(100,116,139,0.6)',
                         }
                     ),
                   }}>
@@ -568,8 +568,8 @@ function HabitCard({
                         boxShadow: `inset 0 0 0 1.5px ${ACCENT}30`,
                       }
                     : {
-                        background: 'rgba(219,193,187,0.12)',
-                        boxShadow: 'inset 0 0 0 1.5px rgba(219,193,187,0.4)',
+                        background: 'rgba(100,116,139,0.12)',
+                        boxShadow: 'inset 0 0 0 1.5px rgba(100,116,139,0.4)',
                       }
                   ),
                 }}
@@ -579,7 +579,7 @@ function HabitCard({
                 {/* Week label */}
                 <span style={{
                   fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em',
-                  color: tick ? ACCENT : '#88726d', fontWeight: 700, textTransform: 'uppercase',
+                  color: tick ? ACCENT : '#64748B', fontWeight: 700, textTransform: 'uppercase',
                 }}>
                   W{wk}
                 </span>
@@ -592,11 +592,11 @@ function HabitCard({
                   ...(tick
                     ? {
                         background: `linear-gradient(135deg, ${ACCENT_MID} 0%, ${ACCENT} 100%)`,
-                        boxShadow: '0 3px 10px rgba(149,67,47,0.32)',
+                        boxShadow: '0 3px 10px rgba(99,102,241,0.32)',
                       }
                     : {
-                        background: 'rgba(219,193,187,0.15)',
-                        border: '1.5px solid rgba(219,193,187,0.5)',
+                        background: 'rgba(100,116,139,0.15)',
+                        border: '1.5px solid rgba(100,116,139,0.5)',
                       }
                   ),
                 }}>
@@ -609,7 +609,7 @@ function HabitCard({
 
                 {/* Date range */}
                 <span style={{
-                  fontFamily: 'var(--font-mono)', fontSize: 8.5, color: '#88726d',
+                  fontFamily: 'var(--font-mono)', fontSize: 8.5, color: '#64748B',
                   letterSpacing: '0.04em',
                 }}>
                   {firstDay}–{lastDay}
@@ -621,13 +621,13 @@ function HabitCard({
           {/* Monthly tally */}
           <div style={{
             display: 'flex', flexDirection: 'column', justifyContent: 'center',
-            alignItems: 'flex-end', paddingLeft: 16, borderLeft: '1px solid rgba(219,193,187,0.25)',
+            alignItems: 'flex-end', paddingLeft: 16, borderLeft: '1px solid rgba(100,116,139,0.25)',
             minWidth: 72, flexShrink: 0,
           }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 800, color: '#1d1b15', lineHeight: 1 }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 800, color: '#0F172A', lineHeight: 1 }}>
               {done}
             </span>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#88726d', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 3 }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#64748B', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 3 }}>
               / {habit.goal} goal
             </span>
           </div>
@@ -635,26 +635,26 @@ function HabitCard({
       )}
 
       {/* ── Monthly progress bar ── */}
-      <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid rgba(219,193,187,0.15)' }}>
+      <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid rgba(100,116,139,0.15)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
           <span style={{
             fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase',
-            letterSpacing: '0.12em', color: '#88726d', fontWeight: 700,
+            letterSpacing: '0.12em', color: '#64748B', fontWeight: 700,
           }}>
             Monthly
           </span>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: rate >= 80 ? ACCENT : '#88726d', fontWeight: rate >= 80 ? 700 : 400 }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: rate >= 80 ? ACCENT : '#64748B', fontWeight: rate >= 80 ? 700 : 400 }}>
             {done} / {habit.goal} · {rate}%
           </span>
         </div>
-        <div style={{ height: 5, borderRadius: 999, background: 'rgba(219,193,187,0.28)', overflow: 'hidden' }}>
+        <div style={{ height: 5, borderRadius: 999, background: 'rgba(100,116,139,0.28)', overflow: 'hidden' }}>
           <div style={{
             height: '100%', borderRadius: 999,
             background: rate >= 80
               ? `linear-gradient(90deg, ${ACCENT_MID} 0%, ${ACCENT} 100%)`
               : rate >= 50
-              ? `linear-gradient(90deg, rgba(219,193,187,0.8) 0%, ${ACCENT_MID} 100%)`
-              : 'rgba(219,193,187,0.55)',
+              ? `linear-gradient(90deg, rgba(100,116,139,0.8) 0%, ${ACCENT_MID} 100%)`
+              : 'rgba(100,116,139,0.55)',
             width: `${Math.min(100, rate)}%`,
             transition: 'width 0.6s cubic-bezier(.4,0,.2,1)',
           }} />
@@ -674,7 +674,7 @@ function DeleteConfirmModal({ name, onConfirm, onCancel }: {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(29,27,21,0.32)', backdropFilter: 'blur(10px)' }}
+      style={{ background: 'rgba(15,23,42,0.32)', backdropFilter: 'blur(10px)' }}
       onClick={e => { if (e.target === e.currentTarget) onCancel() }}
     >
       <div
@@ -682,8 +682,8 @@ function DeleteConfirmModal({ name, onConfirm, onCancel }: {
         style={{
           background: 'rgba(255,255,255,0.88)',
           backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)',
-          border: '1px solid rgba(219,193,187,0.45)', borderRadius: 22, padding: '32px 28px',
-          boxShadow: '0 20px 60px rgba(29,27,21,0.12)',
+          border: '1px solid rgba(100,116,139,0.45)', borderRadius: 22, padding: '32px 28px',
+          boxShadow: '0 20px 60px rgba(15,23,42,0.12)',
           animation: 'slideUp 0.2s ease',
         }}
       >
@@ -693,16 +693,16 @@ function DeleteConfirmModal({ name, onConfirm, onCancel }: {
         <div style={{
           width: 48, height: 48, borderRadius: '50%',
           display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px',
-          background: 'rgba(149,67,47,0.07)', border: '1px solid rgba(149,67,47,0.18)',
+          background: 'rgba(99,102,241,0.07)', border: '1px solid rgba(99,102,241,0.18)',
         }}>
           <Trash2 size={18} color={ACCENT} />
         </div>
 
-        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 800, color: '#1d1b15', margin: '0 0 10px' }}>
+        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 800, color: '#0F172A', margin: '0 0 10px' }}>
           Remove habit?
         </h3>
-        <p style={{ fontFamily: 'var(--font-body)', fontSize: 13.5, color: '#55443d', lineHeight: 1.6, margin: '0 0 24px' }}>
-          <span style={{ color: '#1d1b15', fontWeight: 600 }}>&ldquo;{name}&rdquo;</span> and all its
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: 13.5, color: '#475569', lineHeight: 1.6, margin: '0 0 24px' }}>
+          <span style={{ color: '#0F172A', fontWeight: 600 }}>&ldquo;{name}&rdquo;</span> and all its
           completion history will be permanently deleted.
         </p>
 
@@ -712,9 +712,9 @@ function DeleteConfirmModal({ name, onConfirm, onCancel }: {
             style={{
               flex: 1, padding: '11px', borderRadius: 999, fontSize: 13, fontWeight: 600,
               fontFamily: 'var(--font-body)', cursor: 'pointer', transition: 'all 0.15s',
-              background: 'transparent', border: '1px solid rgba(219,193,187,0.6)', color: '#55443d',
+              background: 'transparent', border: '1px solid rgba(100,116,139,0.6)', color: '#475569',
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#f3ede3' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#EEF2FF' }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
           >
             Cancel
@@ -726,7 +726,7 @@ function DeleteConfirmModal({ name, onConfirm, onCancel }: {
               fontFamily: 'var(--font-body)', cursor: 'pointer', transition: 'all 0.2s',
               background: ACCENT, color: '#fff', border: 'none',
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#7a2f1c' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#4F46E5' }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = ACCENT }}
           >
             Yes, remove it
@@ -759,7 +759,7 @@ function Ring({ value, max, id, size = 44 }: {
             <stop offset="100%" stopColor={ACCENT}     />
           </linearGradient>
         </defs>
-        <circle cx={cx} cy={cx} r={r} fill="none" stroke="rgba(219,193,187,0.38)" strokeWidth={sw} />
+        <circle cx={cx} cy={cx} r={r} fill="none" stroke="rgba(100,116,139,0.38)" strokeWidth={sw} />
         {fill > 0 && (
           <circle
             cx={cx} cy={cx} r={r} fill="none"
@@ -775,7 +775,7 @@ function Ring({ value, max, id, size = 44 }: {
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <span style={{
           fontSize: 9, fontFamily: 'monospace', fontWeight: 700,
-          color: fill > 0 ? ACCENT : '#88726d',
+          color: fill > 0 ? ACCENT : '#64748B',
         }}>
           {rate}%
         </span>
@@ -795,16 +795,16 @@ function IconBtn({ onClick, title, danger, children }: {
       style={{
         width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
         borderRadius: 8, background: 'transparent', border: 'none', cursor: 'pointer',
-        color: '#88726d', transition: 'all 0.15s',
+        color: '#64748B', transition: 'all 0.15s',
       }}
       onMouseEnter={e => {
         const el = e.currentTarget as HTMLButtonElement
         el.style.color = danger ? '#e05252' : ACCENT
-        el.style.background = danger ? 'rgba(224,82,82,0.08)' : 'rgba(149,67,47,0.08)'
+        el.style.background = danger ? 'rgba(224,82,82,0.08)' : 'rgba(99,102,241,0.08)'
       }}
       onMouseLeave={e => {
         const el = e.currentTarget as HTMLButtonElement
-        el.style.color = '#88726d'
+        el.style.color = '#64748B'
         el.style.background = 'transparent'
       }}
     >

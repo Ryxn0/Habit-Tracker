@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -6,13 +6,13 @@ import { todayISO } from '@/lib/utils'
 import type { CalorieEntry, MealType } from '@/types'
 import { Plus, Trash2, Sparkles, Flame, Coffee, UtensilsCrossed, Zap, Apple, ShieldAlert } from 'lucide-react'
 
-const ACCENT = '#95432f'
+const ACCENT = '#6366F1'
 
 const MEALS: { type: MealType; label: string; icon: React.ReactNode }[] = [
-  { type: 'breakfast', label: 'Breakfast', icon: <Coffee size={14} color="#88726d" /> },
-  { type: 'lunch',     label: 'Lunch',     icon: <UtensilsCrossed size={14} color="#55443d" /> },
-  { type: 'dinner',    label: 'Dinner',    icon: <Zap size={14} color="#95432f" /> },
-  { type: 'snack',     label: 'Snack',     icon: <Apple size={14} color="#95432f" /> },
+  { type: 'breakfast', label: 'Breakfast', icon: <Coffee size={14} color="#64748B" /> },
+  { type: 'lunch',     label: 'Lunch',     icon: <UtensilsCrossed size={14} color="#475569" /> },
+  { type: 'dinner',    label: 'Dinner',    icon: <Zap size={14} color="#6366F1" /> },
+  { type: 'snack',     label: 'Snack',     icon: <Apple size={14} color="#6366F1" /> },
 ]
 
 const QUICK_FOODS = [
@@ -113,7 +113,7 @@ export default function CaloriesTab({ userId }: Props) {
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '9px 13px', borderRadius: 12, fontSize: 13,
     fontFamily: 'var(--font-body)', background: 'rgba(255,255,255,0.8)',
-    border: '1px solid rgba(219,193,187,0.4)', outline: 'none', color: '#1d1b15',
+    border: '1px solid rgba(100,116,139,0.4)', outline: 'none', color: '#0F172A',
     boxSizing: 'border-box', transition: 'border-color 0.15s',
   }
 
@@ -128,33 +128,33 @@ export default function CaloriesTab({ userId }: Props) {
 
       {/* ── Progress panel ─────────────────────────────────────────── */}
       <div style={{ ...card, position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', bottom: -32, left: -32, width: 140, height: 140, background: 'rgba(249,243,233,0.6)', borderRadius: '50%', filter: 'blur(40px)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: -32, left: -32, width: 140, height: 140, background: 'rgba(241,245,249,0.6)', borderRadius: '50%', filter: 'blur(40px)', pointerEvents: 'none' }} />
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
           <div className="md:col-span-8" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Flame size={16} color={ACCENT} />
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.15em', color: '#88726d', fontWeight: 700 }}>Today's Balance</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.15em', color: '#64748B', fontWeight: 700 }}>Today's Balance</span>
             </div>
 
             <div className="grid grid-cols-3 gap-4">
               {[
-                { label: 'Consumed', value: totalCals.toLocaleString(), color: '#1d1b15' },
-                { label: 'Daily Goal', value: calGoal.toLocaleString(), color: '#1d1b15' },
+                { label: 'Consumed', value: totalCals.toLocaleString(), color: '#0F172A' },
+                { label: 'Daily Goal', value: calGoal.toLocaleString(), color: '#0F172A' },
                 { label: 'Remaining', value: remaining.toLocaleString(), color: ACCENT },
               ].map(m => (
                 <div key={m.label}>
-                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#88726d', marginBottom: 4 }}>{m.label}</p>
+                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748B', marginBottom: 4 }}>{m.label}</p>
                   <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 32, fontWeight: 800, color: m.color, margin: 0, lineHeight: 1 }}>{m.value}</h3>
                 </div>
               ))}
             </div>
 
             <div>
-              <div style={{ width: '100%', height: 10, background: 'rgba(219,193,187,0.3)', borderRadius: 999, overflow: 'hidden', marginBottom: 6 }}>
+              <div style={{ width: '100%', height: 10, background: 'rgba(100,116,139,0.3)', borderRadius: 999, overflow: 'hidden', marginBottom: 6 }}>
                 <div style={{ height: '100%', background: ACCENT, width: `${pctDone}%`, borderRadius: 999, transition: 'width 0.7s' }} />
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-mono)', fontSize: 9, color: '#88726d' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-mono)', fontSize: 9, color: '#64748B' }}>
                 <span>0% baseline</span>
                 <span>{pctDone}% consumed</span>
                 <span>100% threshold</span>
@@ -162,8 +162,8 @@ export default function CaloriesTab({ userId }: Props) {
             </div>
           </div>
 
-          <div className="md:col-span-4" style={{ padding: '20px', background: 'rgba(249,243,233,0.6)', borderRadius: 16, border: '1px solid rgba(219,193,187,0.2)', textAlign: 'center' }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#55443d', lineHeight: 1.6, marginBottom: 10 }}>
+          <div className="md:col-span-4" style={{ padding: '20px', background: 'rgba(241,245,249,0.6)', borderRadius: 16, border: '1px solid rgba(100,116,139,0.2)', textAlign: 'center' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#475569', lineHeight: 1.6, marginBottom: 10 }}>
               {pctDone >= 100
                 ? 'Caloric threshold saturated. Metabolic engine fully stoked for cellular rest.'
                 : 'Sub-metabolic state active. Autodynamic energy flow in process.'}
@@ -182,7 +182,7 @@ export default function CaloriesTab({ userId }: Props) {
             ) : (
               <button
                 onClick={() => { setGoalInput(String(calGoal)); setEditGoal(true) }}
-                style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, color: ACCENT, textTransform: 'uppercase', letterSpacing: '0.08em', background: 'rgba(149,67,47,0.08)', border: 'none', borderRadius: 999, padding: '6px 14px', cursor: 'pointer' }}
+                style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, color: ACCENT, textTransform: 'uppercase', letterSpacing: '0.08em', background: 'rgba(99,102,241,0.08)', border: 'none', borderRadius: 999, padding: '6px 14px', cursor: 'pointer' }}
               >
                 {remaining > 0 ? `${remaining} cals left` : 'Optimal limit reached'}
               </button>
@@ -197,11 +197,11 @@ export default function CaloriesTab({ userId }: Props) {
 
           {/* Quick foods */}
           <div style={{ ...card, padding: '24px' }}>
-            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: '#1d1b15', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               <Sparkles size={16} color={ACCENT} />
               Somatic Quick-Logs
             </h3>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#55443d', marginBottom: 16 }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#475569', marginBottom: 16 }}>
               Tap any nutrient-dense item below to instantly log it:
             </p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -210,17 +210,17 @@ export default function CaloriesTab({ userId }: Props) {
                   key={food.name}
                   onClick={() => quickAdd(food)}
                   style={{
-                    padding: '14px', background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(219,193,187,0.3)',
+                    padding: '14px', background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(100,116,139,0.3)',
                     borderRadius: 16, textAlign: 'left', cursor: 'pointer', transition: 'all 0.2s',
                     display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: 96,
                   }}
                   onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.95)'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)' }}
                   onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.7)'; (e.currentTarget as HTMLButtonElement).style.transform = '' }}
                 >
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 700, color: '#1d1b15', margin: 0, lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{food.name}</p>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 700, color: '#0F172A', margin: 0, lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{food.name}</p>
                   <div>
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700, color: ACCENT }}>{food.calories} cals</span>
-                    <span style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase', color: '#88726d', letterSpacing: '0.06em' }}>{food.type}</span>
+                    <span style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase', color: '#64748B', letterSpacing: '0.06em' }}>{food.type}</span>
                   </div>
                 </button>
               ))}
@@ -229,11 +229,11 @@ export default function CaloriesTab({ userId }: Props) {
 
           {/* Food log */}
           <div>
-            <h3 style={{ fontFamily: 'var(--font-mono)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.15em', color: '#88726d', fontWeight: 700, marginBottom: 14 }}>Today's Logs</h3>
+            <h3 style={{ fontFamily: 'var(--font-mono)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.15em', color: '#64748B', fontWeight: 700, marginBottom: 14 }}>Today's Logs</h3>
 
             {entries.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '32px', background: 'rgba(255,255,255,0.3)', borderRadius: 16, border: '1px dashed rgba(219,193,187,0.5)' }}>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#88726d', margin: 0 }}>No fuel tracked yet. Use quick-logs or add a custom entry.</p>
+              <div style={{ textAlign: 'center', padding: '32px', background: 'rgba(255,255,255,0.3)', borderRadius: 16, border: '1px dashed rgba(100,116,139,0.5)' }}>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#64748B', margin: 0 }}>No fuel tracked yet. Use quick-logs or add a custom entry.</p>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -244,30 +244,30 @@ export default function CaloriesTab({ userId }: Props) {
                     <div key={m.type}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                         {m.icon}
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 700, color: '#1d1b15' }}>{m.label}</span>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#88726d' }}>{mealCals.toLocaleString()} cals</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 700, color: '#0F172A' }}>{m.label}</span>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#64748B' }}>{mealCals.toLocaleString()} cals</span>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                         {mealEntries.map(entry => (
                           <div
                             key={entry.id}
-                            style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(219,193,187,0.2)', borderRadius: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                            style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(100,116,139,0.2)', borderRadius: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                           >
                             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 600, color: '#1d1b15' }}>{entry.food_name}</span>
+                              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 600, color: '#0F172A' }}>{entry.food_name}</span>
                               {(Number(entry.protein) > 0 || Number(entry.carbs) > 0 || Number(entry.fat) > 0) && (
-                                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#88726d' }}>
+                                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#64748B' }}>
                                   P:{Math.round(Number(entry.protein))}g C:{Math.round(Number(entry.carbs))}g F:{Math.round(Number(entry.fat))}g
                                 </span>
                               )}
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: '#88726d' }}>{entry.calories} cals</span>
+                              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: '#64748B' }}>{entry.calories} cals</span>
                               <button
                                 onClick={() => deleteEntry(entry.id)}
-                                style={{ padding: 6, borderRadius: '50%', background: 'none', border: 'none', cursor: 'pointer', color: '#88726d', transition: 'all 0.15s' }}
+                                style={{ padding: 6, borderRadius: '50%', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', transition: 'all 0.15s' }}
                                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.08)'; (e.currentTarget as HTMLButtonElement).style.color = '#ef4444' }}
-                                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none'; (e.currentTarget as HTMLButtonElement).style.color = '#88726d' }}
+                                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none'; (e.currentTarget as HTMLButtonElement).style.color = '#64748B' }}
                               >
                                 <Trash2 size={13} />
                               </button>
@@ -286,57 +286,57 @@ export default function CaloriesTab({ userId }: Props) {
         {/* ── Right: Custom form ──────────────────────────────────── */}
         <div className="lg:col-span-4">
           <div style={{ ...card, padding: '24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: '#1d1b15', margin: 0 }}>Custom Food Entry</h3>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: '#0F172A', margin: 0 }}>Custom Food Entry</h3>
 
             <form onSubmit={addEntry} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                <label style={{ fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#55443d', fontWeight: 600 }}>Food Name</label>
+                <label style={{ fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#475569', fontWeight: 600 }}>Food Name</label>
                 <input
                   type="text" required value={form.food_name}
                   onChange={e => setForm(f => ({ ...f, food_name: e.target.value }))}
                   placeholder="e.g. Scrambled organic eggs"
                   style={inputStyle}
                   onFocus={e => { (e.currentTarget as HTMLInputElement).style.borderColor = ACCENT }}
-                  onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = 'rgba(219,193,187,0.4)' }}
+                  onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = 'rgba(100,116,139,0.4)' }}
                 />
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                <label style={{ fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#55443d', fontWeight: 600 }}>Calories</label>
+                <label style={{ fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#475569', fontWeight: 600 }}>Calories</label>
                 <input
                   type="number" required min="0" value={form.calories}
                   onChange={e => setForm(f => ({ ...f, calories: e.target.value }))}
                   placeholder="e.g. 140"
                   style={inputStyle}
                   onFocus={e => { (e.currentTarget as HTMLInputElement).style.borderColor = ACCENT }}
-                  onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = 'rgba(219,193,187,0.4)' }}
+                  onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = 'rgba(100,116,139,0.4)' }}
                 />
               </div>
 
               <div className="grid grid-cols-3 gap-2">
                 {(['protein', 'carbs', 'fat'] as const).map(field => (
                   <div key={field} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <label style={{ fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#55443d', fontWeight: 600 }}>{field}</label>
+                    <label style={{ fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#475569', fontWeight: 600 }}>{field}</label>
                     <input
                       type="number" step="any" min="0" placeholder="0g"
                       value={form[field]}
                       onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))}
                       style={{ ...inputStyle, textAlign: 'center' }}
                       onFocus={e => { (e.currentTarget as HTMLInputElement).style.borderColor = ACCENT }}
-                      onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = 'rgba(219,193,187,0.4)' }}
+                      onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = 'rgba(100,116,139,0.4)' }}
                     />
                   </div>
                 ))}
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                <label style={{ fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#55443d', fontWeight: 600 }}>Meal Type</label>
+                <label style={{ fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#475569', fontWeight: 600 }}>Meal Type</label>
                 <select
                   value={form.meal_type}
                   onChange={e => setForm(f => ({ ...f, meal_type: e.target.value as MealType }))}
                   style={inputStyle}
                   onFocus={e => { (e.currentTarget as HTMLSelectElement).style.borderColor = ACCENT }}
-                  onBlur={e => { (e.currentTarget as HTMLSelectElement).style.borderColor = 'rgba(219,193,187,0.4)' }}
+                  onBlur={e => { (e.currentTarget as HTMLSelectElement).style.borderColor = 'rgba(100,116,139,0.4)' }}
                 >
                   <option value="breakfast">Breakfast</option>
                   <option value="lunch">Lunch</option>
@@ -353,16 +353,16 @@ export default function CaloriesTab({ userId }: Props) {
                   border: 'none', cursor: saving ? 'default' : 'pointer',
                   opacity: saving ? 0.6 : 1, transition: 'all 0.2s',
                 }}
-                onMouseEnter={e => { if (!saving) (e.currentTarget as HTMLButtonElement).style.background = '#7a2f1c' }}
+                onMouseEnter={e => { if (!saving) (e.currentTarget as HTMLButtonElement).style.background = '#4F46E5' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = ACCENT }}
               >
                 {saving ? 'Adding...' : 'Log Custom Food'}
               </button>
             </form>
 
-            <div style={{ borderTop: '1px solid rgba(219,193,187,0.3)', paddingTop: 16, display: 'flex', gap: 10, background: 'rgba(237,231,221,0.2)', padding: '14px', borderRadius: 12 }}>
+            <div style={{ borderTop: '1px solid rgba(100,116,139,0.3)', paddingTop: 16, display: 'flex', gap: 10, background: 'rgba(226,232,240,0.2)', padding: '14px', borderRadius: 12 }}>
               <ShieldAlert size={18} color={ACCENT} style={{ flexShrink: 0, marginTop: 1 }} />
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#55443d', lineHeight: 1.6, margin: 0 }}>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#475569', lineHeight: 1.6, margin: 0 }}>
                 Aim for unrefined whole macronutrients for optimal recovery results.
               </p>
             </div>

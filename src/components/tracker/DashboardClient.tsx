@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -141,26 +141,26 @@ export default function DashboardClient({ month, year, tab }: Props) {
           <Link href="/dashboard" style={{ textDecoration: 'none' }} onClick={onNav}>
             <span style={{
               fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 800,
-              color: '#1d1b15', letterSpacing: '-0.02em',
+              color: '#F1F5F9', letterSpacing: '-0.02em',
             }}>
-              asiryx<span style={{ color: '#95432f' }}>.</span>
+              asiryx<span style={{ color: '#818CF8' }}>.</span>
             </span>
           </Link>
           <p style={{
-            fontFamily: 'var(--font-mono)', fontSize: 9.5, color: '#88726d',
+            fontFamily: 'var(--font-mono)', fontSize: 9.5, color: '#94A3B8',
             marginTop: 4, letterSpacing: '0.12em', textTransform: 'uppercase',
           }}>
             Kinetic Serenity
           </p>
         </div>
 
-        <div style={{ height: 1, background: 'rgba(219,193,187,0.25)', margin: '0 0 8px' }} />
+        <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '0 0 8px' }} />
 
         {/* Navigation */}
         <nav style={{ flex: 1, padding: '4px 12px', overflowY: 'auto' }}>
           <p style={{
             fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase',
-            letterSpacing: '0.15em', color: '#88726d',
+            letterSpacing: '0.15em', color: '#94A3B8',
             padding: '6px 10px', marginBottom: 4, fontWeight: 700,
           }}>
             Menu
@@ -176,12 +176,12 @@ export default function DashboardClient({ month, year, tab }: Props) {
                   style={{
                     display: 'flex', alignItems: 'center', gap: 10,
                     padding: '9px 10px', borderRadius: 11, cursor: 'pointer',
-                    background: active ? '#95432f' : 'transparent',
-                    color: active ? '#fff' : '#55443d',
+                    background: active ? '#6366F1' : 'transparent',
+                    color: active ? '#fff' : '#CBD5E1',
                     transition: 'all 0.15s',
                   }}
                   onMouseEnter={e => {
-                    if (!active) (e.currentTarget as HTMLDivElement).style.background = 'rgba(149,67,47,0.07)'
+                    if (!active) (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.06)'
                   }}
                   onMouseLeave={e => {
                     if (!active) (e.currentTarget as HTMLDivElement).style.background = 'transparent'
@@ -190,7 +190,7 @@ export default function DashboardClient({ month, year, tab }: Props) {
                   <div style={{
                     width: 28, height: 28, borderRadius: 7, flexShrink: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: active ? 'rgba(255,255,255,0.2)' : 'rgba(219,193,187,0.3)',
+                    background: active ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.08)',
                     transition: 'background 0.15s',
                   }}>
                     <Icon size={14} />
@@ -211,33 +211,33 @@ export default function DashboardClient({ month, year, tab }: Props) {
         </nav>
 
         {/* Bottom panel */}
-        <div style={{ padding: '12px', margin: '8px 12px 16px', borderRadius: 16, background: 'rgba(219,193,187,0.1)', border: '1px solid rgba(219,193,187,0.18)' }}>
+        <div style={{ padding: '12px', margin: '8px 12px 16px', borderRadius: 16, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
           {tab === 'habits' && (
             <div style={{ marginBottom: 12 }}>
               <p style={{
                 fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase',
-                letterSpacing: '0.15em', color: '#88726d', marginBottom: 8, fontWeight: 700,
+                letterSpacing: '0.15em', color: '#94A3B8', marginBottom: 8, fontWeight: 700,
               }}>
                 Period
               </p>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Link href={`/dashboard?month=${prev.month}&year=${prev.year}&tab=habits`} style={{ textDecoration: 'none' }}>
                   <button style={{
-                    width: 28, height: 28, borderRadius: 8, border: '1px solid rgba(219,193,187,0.5)',
-                    background: 'rgba(255,255,255,0.7)', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#88726d',
+                    width: 28, height: 28, borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)',
+                    background: 'rgba(255,255,255,0.07)', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8',
                   }}>
                     <ChevronLeft size={13} />
                   </button>
                 </Link>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#55443d', fontWeight: 600, letterSpacing: '0.04em' }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#E2E8F0', fontWeight: 600, letterSpacing: '0.04em' }}>
                   {monthName(month)} {year}
                 </span>
                 <Link href={`/dashboard?month=${next.month}&year=${next.year}&tab=habits`} style={{ textDecoration: 'none' }}>
                   <button style={{
-                    width: 28, height: 28, borderRadius: 8, border: '1px solid rgba(219,193,187,0.5)',
-                    background: 'rgba(255,255,255,0.7)', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#88726d',
+                    width: 28, height: 28, borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)',
+                    background: 'rgba(255,255,255,0.07)', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8',
                   }}>
                     <ChevronRight size={13} />
                   </button>
@@ -246,9 +246,9 @@ export default function DashboardClient({ month, year, tab }: Props) {
               {!isCurrentMonth && (
                 <Link href="/dashboard?tab=habits" style={{ textDecoration: 'none', display: 'block', marginTop: 8, textAlign: 'center' }}>
                   <span style={{
-                    fontFamily: 'var(--font-mono)', fontSize: 10, color: '#95432f',
+                    fontFamily: 'var(--font-mono)', fontSize: 10, color: '#818CF8',
                     letterSpacing: '0.1em', textTransform: 'uppercase',
-                    background: 'rgba(149,67,47,0.08)', padding: '4px 10px', borderRadius: 999,
+                    background: 'rgba(99,102,241,0.15)', padding: '4px 10px', borderRadius: 999,
                   }}>
                     Today
                   </span>
@@ -263,18 +263,18 @@ export default function DashboardClient({ month, year, tab }: Props) {
               display: 'flex', alignItems: 'center', gap: 8, width: '100%',
               padding: '8px 10px', borderRadius: 9, border: 'none',
               background: 'transparent', cursor: 'pointer',
-              color: '#88726d', fontSize: 13, fontFamily: 'var(--font-body)',
+              color: '#94A3B8', fontSize: 13, fontFamily: 'var(--font-body)',
               transition: 'all 0.15s',
             }}
             onMouseEnter={e => {
               const el = e.currentTarget as HTMLButtonElement
-              el.style.background = 'rgba(149,67,47,0.08)'
-              el.style.color = '#95432f'
+              el.style.background = 'rgba(255,255,255,0.08)'
+              el.style.color = '#A5B4FC'
             }}
             onMouseLeave={e => {
               const el = e.currentTarget as HTMLButtonElement
               el.style.background = 'transparent'
-              el.style.color = '#88726d'
+              el.style.color = '#94A3B8'
             }}
           >
             <LogOut size={14} />
@@ -293,9 +293,9 @@ export default function DashboardClient({ month, year, tab }: Props) {
         className="hidden md:flex"
         style={{
           position: 'fixed', top: 0, left: 0, bottom: 0, width: 240,
-          background: 'rgba(255, 252, 245, 0.97)',
+          background: '#1E293B',
           backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-          borderRight: '1px solid rgba(219, 193, 187, 0.25)',
+          borderRight: '1px solid rgba(148,163,184,0.1)',
           flexDirection: 'column', zIndex: 40,
         }}
       >
@@ -307,9 +307,9 @@ export default function DashboardClient({ month, year, tab }: Props) {
         className="md:hidden"
         style={{
           position: 'fixed', top: 0, left: 0, right: 0, zIndex: 40, height: 54,
-          background: 'rgba(255,252,245,0.97)',
+          background: 'rgba(248,250,252,0.97)',
           backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(219,193,187,0.22)',
+          borderBottom: '1px solid rgba(100,116,139,0.22)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0 16px',
         }}
@@ -317,18 +317,18 @@ export default function DashboardClient({ month, year, tab }: Props) {
         <Link href="/dashboard" style={{ textDecoration: 'none' }}>
           <span style={{
             fontFamily: 'var(--font-display)', fontSize: 19, fontWeight: 800,
-            color: '#1d1b15', letterSpacing: '-0.02em',
+            color: '#0F172A', letterSpacing: '-0.02em',
           }}>
-            asiryx<span style={{ color: '#95432f' }}>.</span>
+            asiryx<span style={{ color: '#6366F1' }}>.</span>
           </span>
         </Link>
         <button
           onClick={() => setMobileOpen(v => !v)}
           style={{
             width: 36, height: 36, borderRadius: '50%', border: 'none',
-            background: mobileOpen ? 'rgba(149,67,47,0.1)' : 'transparent',
+            background: mobileOpen ? 'rgba(99,102,241,0.1)' : 'transparent',
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#1d1b15', transition: 'all 0.2s',
+            color: '#0F172A', transition: 'all 0.2s',
           }}
         >
           {mobileOpen ? <X size={18} /> : <Menu size={18} />}
@@ -342,16 +342,16 @@ export default function DashboardClient({ month, year, tab }: Props) {
             onClick={() => setMobileOpen(false)}
             style={{
               position: 'fixed', inset: 0,
-              background: 'rgba(29,27,21,0.28)', backdropFilter: 'blur(6px)',
+              background: 'rgba(15,23,42,0.5)', backdropFilter: 'blur(6px)',
             }}
           />
           <div
             ref={drawerRef}
             style={{
               position: 'absolute', top: 0, left: 0, bottom: 0, width: 264,
-              background: '#fff9ee',
-              borderRight: '1px solid rgba(219,193,187,0.3)',
-              boxShadow: '8px 0 48px rgba(149,67,47,0.12)',
+              background: '#1E293B',
+              borderRight: '1px solid rgba(148,163,184,0.1)',
+              boxShadow: '8px 0 48px rgba(0,0,0,0.3)',
               display: 'flex', flexDirection: 'column',
               paddingTop: 54,
             }}
@@ -404,10 +404,10 @@ export default function DashboardClient({ month, year, tab }: Props) {
               {ready && allHabits.length === 0 ? (
                 <div style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center',
-                  padding: '64px 0', border: '1px dashed rgba(219,193,187,0.5)',
+                  padding: '64px 0', border: '1px dashed rgba(100,116,139,0.5)',
                   borderRadius: 20, gap: 12, background: 'rgba(255,255,255,0.3)',
                 }}>
-                  <p style={{ color: '#88726d', fontSize: 14, margin: 0 }}>
+                  <p style={{ color: '#64748B', fontSize: 14, margin: 0 }}>
                     No habits for {monthName(month)} {year}
                   </p>
                   <button
@@ -416,7 +416,7 @@ export default function DashboardClient({ month, year, tab }: Props) {
                     style={{
                       padding: '10px 24px', borderRadius: 999, fontSize: 14,
                       fontWeight: 600, cursor: carryingOver ? 'default' : 'pointer',
-                      border: 'none', background: '#95432f', color: '#fff',
+                      border: 'none', background: '#6366F1', color: '#fff',
                       opacity: carryingOver ? 0.6 : 1, transition: 'opacity 0.2s',
                     }}
                   >
@@ -456,19 +456,19 @@ function ViewHeader({
     <div style={{ marginBottom: 36 }}>
       <p style={{
         fontSize: 10, fontFamily: 'var(--font-mono)', letterSpacing: '0.15em',
-        color: '#88726d', textTransform: 'uppercase', marginBottom: 8, fontWeight: 700,
+        color: '#64748B', textTransform: 'uppercase', marginBottom: 8, fontWeight: 700,
       }}>
         {label}
       </p>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
         <h1 style={{
           fontFamily: 'var(--font-display)', fontSize: 40, fontWeight: 800,
-          color: '#1d1b15', lineHeight: 1, margin: 0, letterSpacing: '-0.02em',
+          color: '#0F172A', lineHeight: 1, margin: 0, letterSpacing: '-0.02em',
         }}>
           {title}
         </h1>
         {sub && (
-          <span style={{ fontSize: 13, color: '#88726d', fontFamily: 'var(--font-mono)' }}>{sub}</span>
+          <span style={{ fontSize: 13, color: '#64748B', fontFamily: 'var(--font-mono)' }}>{sub}</span>
         )}
       </div>
     </div>
@@ -482,15 +482,15 @@ function LoadingSkeleton() {
     <div style={{
       minHeight: '100vh', display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center', gap: 10,
-      background: '#fff9ee',
+      background: '#F8FAFC',
     }}>
       <div style={{
         width: 32, height: 32, borderRadius: '50%',
-        border: '2px solid rgba(219,193,187,0.4)', borderTopColor: '#95432f',
+        border: '2px solid rgba(100,116,139,0.4)', borderTopColor: '#6366F1',
         animation: 'spin 0.8s linear infinite',
       }} />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      <p style={{ color: '#88726d', fontSize: 13, fontFamily: 'monospace' }}>loading…</p>
+      <p style={{ color: '#64748B', fontSize: 13, fontFamily: 'monospace' }}>loading…</p>
     </div>
   )
 }
