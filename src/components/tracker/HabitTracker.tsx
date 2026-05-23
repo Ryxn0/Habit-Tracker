@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import type { ReactNode } from 'react'
+import { useState, useCallback, type ReactNode } from 'react'
 import { getDaysInMonth } from 'date-fns'
 import {
   DndContext, PointerSensor, TouchSensor,
@@ -17,12 +16,13 @@ import type { Habit, Completion, HabitType } from '@/types'
 import { toISODate, todayISO, pct } from '@/lib/utils'
 import HabitModal from './HabitModal'
 import { createClient } from '@/lib/supabase/client'
+import { Flame, GripVertical, Pencil, Trash2, Plus } from 'lucide-react'
 
 const ACCENT = '#95432f'
-const CYAN   = '#95432f'
-const PINK   = '#cc7055'
+const ACCENT_MID = '#cc7055'
 
-// ── Props / state types ───────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────
+
 interface Props {
   dailyHabits:  Habit[]
   weeklyHabits: Habit[]
@@ -33,7 +33,8 @@ interface Props {
 }
 interface ModalState { open: boolean; habit: Habit | null; defaultType: HabitType }
 
-// ── Main component ────────────────────────────────────────────────────
+// ── Main component ────────────────────────────────────────────────────────
+
 export default function HabitTracker({
   dailyHabits: initDaily, weeklyHabits: initWeekly,
   completions, month, year, userId,
@@ -50,9 +51,7 @@ export default function HabitTracker({
   const today   = todayISO()
   const numDays = getDaysInMonth(new Date(year, month - 1))
 
-  // ── Completion helpers ────────────────────────────────────────────
-  const isCompleted = (habitId: string, date: string) =>
-    completionSet.has(`${habitId}__${date}`)
+  const isCompleted = (habitId: string, date: string) => completionSet.has(`${habitId}__${date}`)
 
   const toggle = useCallback(async (habitId: string, date: string) => {
     if (date > today) return
@@ -94,7 +93,6 @@ export default function HabitTracker({
     return s
   }
 
-  // ── Modal / CRUD ──────────────────────────────────────────────────
   const openAdd  = (t: HabitType) => setModal({ open: true, habit: null, defaultType: t })
   const openEdit = (h: Habit)     => setModal({ open: true, habit: h, defaultType: h.type })
   const close    = ()             => setModal({ open: false, habit: null, defaultType: 'daily' })
@@ -146,7 +144,7 @@ export default function HabitTracker({
   }
 
   return (
-    <div className="space-y-14">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
       <HabitSection
         title="Daily Habits" type="daily" habits={dailyHabits}
         onAdd={() => openAdd('daily')} onReorder={setDailyHabits}
@@ -177,7 +175,7 @@ export default function HabitTracker({
   )
 }
 
-// ── HabitSection ──────────────────────────────────────────────────────
+// ── HabitSection ──────────────────────────────────────────────────────────
 
 interface SectionProps {
   title:   string
@@ -213,45 +211,127 @@ function HabitSection({
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
     if (!over || active.id === over.id) return
-    const oldIdx   = habits.findIndex(h => h.id === active.id)
-    const newIdx   = habits.findIndex(h => h.id === over.id)
+    const oldIdx    = habits.findIndex(h => h.id === active.id)
+    const newIdx    = habits.findIndex(h => h.id === over.id)
     const reordered = arrayMove(habits, oldIdx, newIdx)
     onReorder(reordered)
     fetch('/api/habits/reorder', {
-      method:  'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ ids: reordered.map(h => h.id) }),
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: reordered.map(h => h.id) }),
     })
   }
 
   return (
     <section>
-      {/* Section header */}
-      <div className="flex items-baseline gap-3 mb-5">
-        <h2 className="font-display text-2xl" style={{ color: '#1d1b15' }}>{title}</h2>
-        {habits.length > 0 && (
-          <span className="text-xs font-mono" style={{ color: '#88726d' }}>
-            {habits.length} habit{habits.length !== 1 ? 's' : ''} · {avgRate}% avg
-          </span>
-        )}
-        <div className="flex-1 h-px mx-1" style={{ alignSelf: 'center', background: 'rgba(219,193,187,0.4)' }} />
-        <button onClick={onAdd} className="btn-primary text-sm px-5 py-2">
-          + Add habit
-        </button>
+      {/* ── Section header ── */}
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {/* Accent bar + title */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 3, height: 26, borderRadius: 2, background: ACCENT, flexShrink: 0 }} />
+            <h2 style={{
+              fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 800,
+              color: '#1d1b15', margin: 0, letterSpacing: '-0.02em',
+            }}>
+              {title}
+            </h2>
+          </div>
+
+          {/* Stats badge */}
+          {habits.length > 0 && (
+            <span style={{
+              fontFamily: 'var(--font-mono)', fontSize: 9.5, color: '#88726d',
+              background: 'rgba(219,193,187,0.2)', borderRadius: 999,
+              padding: '4px 11px', border: '1px solid rgba(219,193,187,0.35)',
+              letterSpacing: '0.1em', fontWeight: 700, textTransform: 'uppercase',
+            }}>
+              {habits.length} habit{habits.length !== 1 ? 's' : ''} · {avgRate}% avg
+            </span>
+          )}
+
+          <div style={{ flex: 1 }} />
+
+          {/* Add button */}
+          <button
+            onClick={onAdd}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '8px 18px', borderRadius: 999,
+              background: ACCENT, color: '#fff', border: 'none',
+              fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 600,
+              cursor: 'pointer', transition: 'all 0.2s',
+              boxShadow: '0 2px 10px rgba(149,67,47,0.2)',
+            }}
+            onMouseEnter={e => {
+              const el = e.currentTarget as HTMLButtonElement
+              el.style.background = '#7a2f1c'
+              el.style.boxShadow = '0 4px 18px rgba(149,67,47,0.32)'
+              el.style.transform = 'translateY(-1px)'
+            }}
+            onMouseLeave={e => {
+              const el = e.currentTarget as HTMLButtonElement
+              el.style.background = ACCENT
+              el.style.boxShadow = '0 2px 10px rgba(149,67,47,0.2)'
+              el.style.transform = ''
+            }}
+          >
+            <Plus size={13} />
+            Add habit
+          </button>
+        </div>
       </div>
 
-      {/* Empty state */}
+      {/* ── Empty state ── */}
       {habits.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 rounded-xl" style={{ border: '1px dashed rgba(219,193,187,0.5)', background: 'rgba(255,255,255,0.3)' }}>
-          <p className="text-sm mb-3" style={{ color: '#88726d' }}>No {type} habits yet</p>
-          <button onClick={onAdd} className="text-sm" style={{ color: ACCENT, background: 'none', border: 'none', cursor: 'pointer' }}>
-            Add your first one →
+        <div style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          justifyContent: 'center', padding: '56px 24px', borderRadius: 20,
+          border: '1.5px dashed rgba(219,193,187,0.55)',
+          background: 'rgba(255,255,255,0.4)',
+          gap: 12,
+        }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: '50%',
+            background: 'rgba(149,67,47,0.06)', border: '1px solid rgba(149,67,47,0.12)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Plus size={20} color={ACCENT} />
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 14, color: '#1d1b15', margin: '0 0 4px' }}>
+              No {type} habits yet
+            </p>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#88726d', margin: 0 }}>
+              Add your first one to start tracking
+            </p>
+          </div>
+          <button
+            onClick={onAdd}
+            style={{
+              marginTop: 4, padding: '9px 22px', borderRadius: 999,
+              fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              border: '1px solid rgba(149,67,47,0.3)',
+              background: 'rgba(149,67,47,0.06)', color: ACCENT,
+              fontFamily: 'var(--font-body)', transition: 'all 0.15s',
+            }}
+            onMouseEnter={e => {
+              const el = e.currentTarget as HTMLButtonElement
+              el.style.background = ACCENT; el.style.color = '#fff'
+              el.style.borderColor = ACCENT
+            }}
+            onMouseLeave={e => {
+              const el = e.currentTarget as HTMLButtonElement
+              el.style.background = 'rgba(149,67,47,0.06)'; el.style.color = ACCENT
+              el.style.borderColor = 'rgba(149,67,47,0.3)'
+            }}
+          >
+            Add your first {type} habit →
           </button>
         </div>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={habits.map(h => h.id)} strategy={verticalListSortingStrategy}>
-            <div className="space-y-2">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {habits.map((h, i) => (
                 <HabitCard key={h.id} habit={h} type={type} countDone={countDone} index={i} {...rest} />
               ))}
@@ -263,7 +343,7 @@ function HabitSection({
   )
 }
 
-// ── HabitCard ─────────────────────────────────────────────────────────
+// ── HabitCard ─────────────────────────────────────────────────────────────
 
 interface CardProps {
   habit:   Habit
@@ -293,152 +373,298 @@ function HabitCard({
   const done   = countDone(habit.id)
   const rate   = pct(done, habit.goal)
   const streak = getStreak(habit.id)
-
-  const cardStyle = {
-    transform:      CSS.Transform.toString(transform),
-    transition,
-    opacity:        isDragging ? 0.5 : 1,
-    zIndex:         isDragging ? 20 : undefined,
-    animationDelay: `${index * 55}ms`,
-    background:     'rgba(255,255,255,0.6)',
-    borderColor:    'rgba(219,193,187,0.35)',
-    color:          '#1d1b15',
-  }
+  const hasStreak = streak > 0
 
   return (
     <div
       ref={setNodeRef}
-      style={cardStyle}
-      className="group habit-card animate-slide-up"
+      className="group"
+      style={{
+        transform:  CSS.Transform.toString(transform),
+        transition: isDragging ? transition : 'transform 0.2s, box-shadow 0.2s, border-left-color 0.3s',
+        opacity:    isDragging ? 0.55 : 1,
+        zIndex:     isDragging ? 20 : undefined,
+        animationDelay: `${index * 45}ms`,
+        // Glass card
+        background: 'rgba(255, 255, 255, 0.78)',
+        backdropFilter: 'blur(14px)',
+        WebkitBackdropFilter: 'blur(14px)',
+        border: '1px solid rgba(255, 255, 255, 0.92)',
+        borderLeft: `3px solid ${hasStreak ? ACCENT : 'rgba(219,193,187,0.45)'}`,
+        borderRadius: 16,
+        boxShadow: `0 4px 20px rgba(149,67,47,${hasStreak ? '0.07' : '0.03'})`,
+        padding: '18px 22px',
+      }}
+      onMouseEnter={e => {
+        if (!isDragging) {
+          (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'
+          ;(e.currentTarget as HTMLDivElement).style.boxShadow = `0 10px 36px rgba(149,67,47,${hasStreak ? '0.12' : '0.07'})`
+        }
+      }}
+      onMouseLeave={e => {
+        if (!isDragging) {
+          (e.currentTarget as HTMLDivElement).style.transform = ''
+          ;(e.currentTarget as HTMLDivElement).style.boxShadow = `0 4px 20px rgba(149,67,47,${hasStreak ? '0.07' : '0.03'})`
+        }
+      }}
     >
       {/* ── Header row ── */}
-      <div className="flex items-center gap-3 mb-3">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: type === 'daily' ? 14 : 16 }}>
 
         {/* Drag handle */}
         <button
           {...attributes} {...listeners}
           title="Drag to reorder"
-          className="flex-shrink-0 text-muted opacity-30 group-hover:opacity-60 hover:!opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
-          style={{ touchAction: 'none', padding: '2px 4px', background: 'none', border: 'none' }}
+          style={{
+            background: 'none', border: 'none', cursor: 'grab',
+            padding: '2px 4px', color: 'rgba(219,193,187,0.7)',
+            flexShrink: 0, display: 'flex', alignItems: 'center',
+            transition: 'color 0.15s',
+            touchAction: 'none',
+          }}
+          className="group-hover:[&]:!text-[rgba(149,67,47,0.4)]"
         >
-          <DragIcon />
+          <GripVertical size={15} />
         </button>
 
         {/* Habit name */}
-        <span className="text-sm font-medium flex-1 truncate" style={{ color: '#1d1b15' }}>{habit.name}</span>
+        <span style={{
+          fontFamily: 'var(--font-body)', fontSize: 14.5, fontWeight: 600,
+          color: '#1d1b15', flex: 1, letterSpacing: '-0.01em',
+          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        }}>
+          {habit.name}
+        </span>
 
-        {/* Edit / delete — visible on hover */}
-        <div className="opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity duration-150 flex-shrink-0">
-          <Btn onClick={() => onEdit(habit)}   title="Edit">✎</Btn>
-          <Btn onClick={() => onDelete(habit)} title="Delete" danger>✕</Btn>
-        </div>
+        {/* Streak badge */}
+        {hasStreak && (
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            background: streak >= 7 ? 'rgba(149,67,47,0.11)' : 'rgba(204,112,85,0.09)',
+            color: streak >= 7 ? ACCENT : ACCENT_MID,
+            borderRadius: 999, padding: '3px 9px',
+            fontSize: 11, fontWeight: 700,
+            fontFamily: 'var(--font-mono)', letterSpacing: '0.04em',
+            border: `1px solid ${streak >= 7 ? 'rgba(149,67,47,0.18)' : 'rgba(204,112,85,0.15)'}`,
+            flexShrink: 0,
+          }}>
+            <Flame size={11} />
+            {streak}d
+          </span>
+        )}
 
-        {/* Streak */}
-        <div className="flex items-center gap-1 flex-shrink-0">
-          {streak > 0 ? (
-            <span className="text-xs font-mono" style={{ color: ACCENT, fontWeight: 600 }}>{streak}d 🔥</span>
-          ) : (
-            <span className="text-xs font-mono" style={{ color: '#88726d' }}>—</span>
-          )}
+        {/* Edit / Delete — appear on hover */}
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex gap-1" style={{ flexShrink: 0 }}>
+          <IconBtn onClick={() => onEdit(habit)} title="Edit">
+            <Pencil size={12} />
+          </IconBtn>
+          <IconBtn onClick={() => onDelete(habit)} title="Delete" danger>
+            <Trash2 size={12} />
+          </IconBtn>
         </div>
 
         {/* Progress ring */}
-        <Ring value={done} max={habit.goal} id={habit.id} />
+        <Ring value={done} max={habit.goal} id={habit.id} size={44} />
       </div>
 
       {/* ── Day grid (daily) ── */}
       {type === 'daily' && (
-        <div className="flex gap-[3px]" style={{ overflowX: 'auto', paddingBottom: 2 }}>
-          {Array.from({ length: numDays }, (_, i) => i + 1).map(d => {
-            const date = toISODate(year, month, d)
-            const tick = isCompleted(habit.id, date)
-            const isT  = date === today
-            const fut  = date > today
-            const lkey = `${habit.id}__${date}`
-            return (
-              <button
-                key={d}
-                onClick={() => toggle(habit.id, date)}
-                disabled={fut || loading === lkey}
-                title={`${month}/${d}`}
-                className="flex flex-col items-center flex-shrink-0 active:scale-90 transition-transform duration-100"
-                style={{ gap: 2, opacity: fut ? 0.2 : 1, cursor: fut ? 'default' : 'pointer' }}
-              >
-                <span style={{ fontSize: 8, lineHeight: 1, fontFamily: 'monospace', color: isT ? ACCENT : '#88726d' }}>
-                  {d}
-                </span>
-                <div style={{
-                  width: 20, height: 20, borderRadius: 5, flexShrink: 0,
-                  border:     `1px solid ${tick ? ACCENT : isT ? ACCENT + '55' : 'rgba(219,193,187,0.5)'}`,
-                  background: tick ? ACCENT + '18' : 'transparent',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  transition: 'all 0.15s',
-                }}>
-                  {tick && (
-                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none" className="animate-pop">
-                      <path d="M1 4L3.5 6.5L9 1" stroke={ACCENT} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  )}
-                </div>
-              </button>
-            )
-          })}
+        <div style={{ overflowX: 'auto', paddingBottom: 2 }}>
+          <div style={{ display: 'flex', gap: 3, minWidth: 'max-content' }}>
+            {Array.from({ length: numDays }, (_, i) => i + 1).map(d => {
+              const date = toISODate(year, month, d)
+              const tick = isCompleted(habit.id, date)
+              const isT  = date === today
+              const fut  = date > today
+              const lkey = `${habit.id}__${date}`
+              return (
+                <button
+                  key={d}
+                  onClick={() => toggle(habit.id, date)}
+                  disabled={fut || loading === lkey}
+                  title={`${month}/${d}${tick ? ' ✓' : ''}`}
+                  style={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center',
+                    gap: 3, flexShrink: 0,
+                    opacity: fut ? 0.18 : 1,
+                    cursor: fut ? 'default' : 'pointer',
+                    background: 'none', border: 'none', padding: 0,
+                    transition: 'transform 0.1s',
+                  }}
+                  onMouseEnter={e => { if (!fut) (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.15)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = '' }}
+                  onMouseDown={e => { if (!fut) (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.88)' }}
+                  onMouseUp={e => { if (!fut) (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.15)' }}
+                >
+                  {/* Day number */}
+                  <span style={{
+                    fontSize: 8.5, lineHeight: 1, fontFamily: 'monospace',
+                    color: isT ? ACCENT : '#88726d',
+                    fontWeight: isT ? 700 : 400,
+                  }}>
+                    {d}
+                  </span>
+
+                  {/* Cell */}
+                  <div style={{
+                    width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'all 0.15s',
+                    ...(tick
+                      ? {
+                          background: `linear-gradient(135deg, ${ACCENT_MID} 0%, ${ACCENT} 100%)`,
+                          border: 'none',
+                          boxShadow: '0 2px 8px rgba(149,67,47,0.3)',
+                        }
+                      : isT
+                      ? {
+                          background: 'rgba(149,67,47,0.04)',
+                          border: `1.5px dashed ${ACCENT}`,
+                        }
+                      : {
+                          background: 'transparent',
+                          border: '1.5px solid rgba(219,193,187,0.6)',
+                        }
+                    ),
+                  }}>
+                    {tick && (
+                      <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+                        <path d="M1 4.5L3.8 7.5L10 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
         </div>
       )}
 
       {/* ── Week indicators (weekly) ── */}
       {type === 'weekly' && (
-        <div className="flex items-center gap-3">
+        <div style={{ display: 'flex', gap: 10, alignItems: 'stretch' }}>
           {[1, 2, 3, 4, 5].map(wk => {
             const firstDay = (wk - 1) * 7 + 1
             if (firstDay > numDays) return null
-            const date = toISODate(year, month, firstDay)
-            const tick = isCompleted(habit.id, date)
-            const fut  = date > today
-            const lkey = `${habit.id}__${date}`
+            const lastDay = Math.min(wk * 7, numDays)
+            const date    = toISODate(year, month, firstDay)
+            const tick    = isCompleted(habit.id, date)
+            const fut     = date > today
+            const lkey    = `${habit.id}__${date}`
+
             return (
-              <div key={wk} className="flex flex-col items-center gap-1.5">
-                <span style={{ fontSize: 9, color: '#88726d', fontFamily: 'monospace', letterSpacing: '0.05em' }}>
+              <button
+                key={wk}
+                onClick={() => toggle(habit.id, date)}
+                disabled={fut || loading === lkey}
+                style={{
+                  flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  gap: 6, padding: '12px 8px', borderRadius: 12, cursor: fut ? 'default' : 'pointer',
+                  border: 'none', transition: 'all 0.18s',
+                  opacity: fut ? 0.28 : 1,
+                  ...(tick
+                    ? {
+                        background: `linear-gradient(145deg, ${ACCENT_MID}18, ${ACCENT}14)`,
+                        boxShadow: `inset 0 0 0 1.5px ${ACCENT}30`,
+                      }
+                    : {
+                        background: 'rgba(219,193,187,0.12)',
+                        boxShadow: 'inset 0 0 0 1.5px rgba(219,193,187,0.4)',
+                      }
+                  ),
+                }}
+                onMouseEnter={e => { if (!fut) (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = '' }}
+              >
+                {/* Week label */}
+                <span style={{
+                  fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em',
+                  color: tick ? ACCENT : '#88726d', fontWeight: 700, textTransform: 'uppercase',
+                }}>
                   W{wk}
                 </span>
-                <button
-                  onClick={() => toggle(habit.id, date)}
-                  disabled={fut || loading === lkey}
-                  style={{
-                    width: 36, height: 36, borderRadius: 8,
-                    border:     `1px solid ${tick ? ACCENT : 'rgba(219,193,187,0.5)'}`,
-                    background: tick ? ACCENT + '18' : 'transparent',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: fut ? 'default' : 'pointer',
-                    opacity: fut ? 0.2 : 1,
-                    transition: 'all 0.15s',
-                    transform: 'scale(1)',
-                  }}
-                  onMouseEnter={e => { if (!fut) (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.08)' }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)' }}
-                  onMouseDown={e =>  { if (!fut) (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.92)' }}
-                  onMouseUp={e =>    { if (!fut) (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.08)' }}
-                >
+
+                {/* Check circle */}
+                <div style={{
+                  width: 32, height: 32, borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'all 0.18s',
+                  ...(tick
+                    ? {
+                        background: `linear-gradient(135deg, ${ACCENT_MID} 0%, ${ACCENT} 100%)`,
+                        boxShadow: '0 3px 10px rgba(149,67,47,0.32)',
+                      }
+                    : {
+                        background: 'rgba(219,193,187,0.15)',
+                        border: '1.5px solid rgba(219,193,187,0.5)',
+                      }
+                  ),
+                }}>
                   {tick && (
-                    <svg width="14" height="11" viewBox="0 0 14 11" fill="none" className="animate-pop">
-                      <path d="M1 5.5L5 9.5L13 1" stroke={ACCENT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg width="14" height="11" viewBox="0 0 14 11" fill="none">
+                      <path d="M1 5.5L5 9.5L13 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   )}
-                </button>
-              </div>
+                </div>
+
+                {/* Date range */}
+                <span style={{
+                  fontFamily: 'var(--font-mono)', fontSize: 8.5, color: '#88726d',
+                  letterSpacing: '0.04em',
+                }}>
+                  {firstDay}–{lastDay}
+                </span>
+              </button>
             )
           })}
 
-          <div className="ml-auto text-xs font-mono" style={{ color: '#88726d' }}>
-            {done}/{habit.goal} this month
+          {/* Monthly tally */}
+          <div style={{
+            display: 'flex', flexDirection: 'column', justifyContent: 'center',
+            alignItems: 'flex-end', paddingLeft: 16, borderLeft: '1px solid rgba(219,193,187,0.25)',
+            minWidth: 72, flexShrink: 0,
+          }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 800, color: '#1d1b15', lineHeight: 1 }}>
+              {done}
+            </span>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#88726d', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 3 }}>
+              / {habit.goal} goal
+            </span>
           </div>
         </div>
       )}
+
+      {/* ── Monthly progress bar ── */}
+      <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid rgba(219,193,187,0.15)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <span style={{
+            fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase',
+            letterSpacing: '0.12em', color: '#88726d', fontWeight: 700,
+          }}>
+            Monthly
+          </span>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: rate >= 80 ? ACCENT : '#88726d', fontWeight: rate >= 80 ? 700 : 400 }}>
+            {done} / {habit.goal} · {rate}%
+          </span>
+        </div>
+        <div style={{ height: 5, borderRadius: 999, background: 'rgba(219,193,187,0.28)', overflow: 'hidden' }}>
+          <div style={{
+            height: '100%', borderRadius: 999,
+            background: rate >= 80
+              ? `linear-gradient(90deg, ${ACCENT_MID} 0%, ${ACCENT} 100%)`
+              : rate >= 50
+              ? `linear-gradient(90deg, rgba(219,193,187,0.8) 0%, ${ACCENT_MID} 100%)`
+              : 'rgba(219,193,187,0.55)',
+            width: `${Math.min(100, rate)}%`,
+            transition: 'width 0.6s cubic-bezier(.4,0,.2,1)',
+          }} />
+        </div>
+      </div>
     </div>
   )
 }
 
-// ── DeleteConfirmModal ────────────────────────────────────────────────
+// ── DeleteConfirmModal ────────────────────────────────────────────────────
 
 function DeleteConfirmModal({ name, onConfirm, onCancel }: {
   name:      string
@@ -448,32 +674,60 @@ function DeleteConfirmModal({ name, onConfirm, onCancel }: {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(29,27,21,0.3)', backdropFilter: 'blur(8px)' }}
+      style={{ background: 'rgba(29,27,21,0.32)', backdropFilter: 'blur(10px)' }}
       onClick={e => { if (e.target === e.currentTarget) onCancel() }}
     >
-      <div className="w-full max-w-sm animate-slide-up text-center" style={{ background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(24px)', border: '1px solid rgba(219,193,187,0.4)', borderRadius: 20, padding: 28 }}>
-        <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4"
-          style={{ background: 'rgba(149,67,47,0.08)', border: '1px solid rgba(149,67,47,0.2)' }}>
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M8.5 4h3M3 6h14M5.5 6l.9 10.1A1 1 0 007.4 17h5.2a1 1 0 001-.9L14.5 6"
-              stroke="#95432f" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+      <div
+        className="w-full max-w-sm text-center"
+        style={{
+          background: 'rgba(255,255,255,0.88)',
+          backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)',
+          border: '1px solid rgba(219,193,187,0.45)', borderRadius: 22, padding: '32px 28px',
+          boxShadow: '0 20px 60px rgba(29,27,21,0.12)',
+          animation: 'slideUp 0.2s ease',
+        }}
+      >
+        <style>{`@keyframes slideUp { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }`}</style>
+
+        {/* Icon */}
+        <div style={{
+          width: 48, height: 48, borderRadius: '50%',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px',
+          background: 'rgba(149,67,47,0.07)', border: '1px solid rgba(149,67,47,0.18)',
+        }}>
+          <Trash2 size={18} color={ACCENT} />
         </div>
 
-        <h3 className="font-display text-xl mb-2" style={{ color: '#1d1b15' }}>Remove habit?</h3>
-        <p className="text-sm mb-6 leading-relaxed" style={{ color: '#55443d' }}>
-          <span style={{ color: '#1d1b15', fontWeight: 500 }}>&ldquo;{name}&rdquo;</span> and all its
+        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 800, color: '#1d1b15', margin: '0 0 10px' }}>
+          Remove habit?
+        </h3>
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: 13.5, color: '#55443d', lineHeight: 1.6, margin: '0 0 24px' }}>
+          <span style={{ color: '#1d1b15', fontWeight: 600 }}>&ldquo;{name}&rdquo;</span> and all its
           completion history will be permanently deleted.
         </p>
 
-        <div className="flex gap-3">
-          <button onClick={onCancel} className="btn-ghost flex-1">Cancel</button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button
+            onClick={onCancel}
+            style={{
+              flex: 1, padding: '11px', borderRadius: 999, fontSize: 13, fontWeight: 600,
+              fontFamily: 'var(--font-body)', cursor: 'pointer', transition: 'all 0.15s',
+              background: 'transparent', border: '1px solid rgba(219,193,187,0.6)', color: '#55443d',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#f3ede3' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+          >
+            Cancel
+          </button>
           <button
             onClick={onConfirm}
-            className="flex-1 py-3 rounded-lg font-semibold text-sm transition-all duration-200 active:scale-95"
-            style={{ background: '#95432f', color: '#fff', border: 'none', cursor: 'pointer' }}
+            style={{
+              flex: 1, padding: '11px', borderRadius: 999, fontSize: 13, fontWeight: 700,
+              fontFamily: 'var(--font-body)', cursor: 'pointer', transition: 'all 0.2s',
+              background: ACCENT, color: '#fff', border: 'none',
+            }}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#7a2f1c' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#95432f' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = ACCENT }}
           >
             Yes, remove it
           </button>
@@ -483,12 +737,12 @@ function DeleteConfirmModal({ name, onConfirm, onCancel }: {
   )
 }
 
-// ── Ring ──────────────────────────────────────────────────────────────
+// ── Ring ──────────────────────────────────────────────────────────────────
 
 function Ring({ value, max, id, size = 44 }: {
   value: number; max: number; id: string; size?: number
 }) {
-  const sw     = 4
+  const sw     = 3.5
   const r      = (size - sw * 2) / 2
   const circ   = 2 * Math.PI * r
   const fill   = max > 0 ? Math.min(value / max, 1) : 0
@@ -501,11 +755,11 @@ function Ring({ value, max, id, size = 44 }: {
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', display: 'block' }}>
         <defs>
           <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%"   stopColor={ACCENT} />
-            <stop offset="100%" stopColor={PINK}   />
+            <stop offset="0%"   stopColor={ACCENT_MID} />
+            <stop offset="100%" stopColor={ACCENT}     />
           </linearGradient>
         </defs>
-        <circle cx={cx} cy={cx} r={r} fill="none" stroke="rgba(219,193,187,0.4)" strokeWidth={sw} />
+        <circle cx={cx} cy={cx} r={r} fill="none" stroke="rgba(219,193,187,0.38)" strokeWidth={sw} />
         {fill > 0 && (
           <circle
             cx={cx} cy={cx} r={r} fill="none"
@@ -514,12 +768,15 @@ function Ring({ value, max, id, size = 44 }: {
             strokeDasharray={circ}
             strokeDashoffset={circ * (1 - fill)}
             strokeLinecap="round"
-            style={{ transition: 'stroke-dashoffset 0.4s ease' }}
+            style={{ transition: 'stroke-dashoffset 0.5s cubic-bezier(.4,0,.2,1)' }}
           />
         )}
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontSize: 9, fontFamily: 'monospace', fontWeight: 600, color: fill > 0 ? ACCENT : '#88726d' }}>
+        <span style={{
+          fontSize: 9, fontFamily: 'monospace', fontWeight: 700,
+          color: fill > 0 ? ACCENT : '#88726d',
+        }}>
           {rate}%
         </span>
       </div>
@@ -527,35 +784,31 @@ function Ring({ value, max, id, size = 44 }: {
   )
 }
 
-// ── Btn ───────────────────────────────────────────────────────────────
+// ── IconBtn ───────────────────────────────────────────────────────────────
 
-function Btn({ onClick, title, danger, children }: {
+function IconBtn({ onClick, title, danger, children }: {
   onClick: () => void; title: string; danger?: boolean; children: ReactNode
 }) {
   return (
     <button
       onClick={onClick} title={title}
-      className="w-9 h-9 flex items-center justify-center rounded text-muted hover:text-white transition-all duration-150 hover:scale-125 active:scale-95"
-      style={{ fontSize: 17, background: 'none', border: 'none', cursor: 'pointer' }}
-      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = danger ? '#f87171' : '#fff' }}
-      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '' }}
+      style={{
+        width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        borderRadius: 8, background: 'transparent', border: 'none', cursor: 'pointer',
+        color: '#88726d', transition: 'all 0.15s',
+      }}
+      onMouseEnter={e => {
+        const el = e.currentTarget as HTMLButtonElement
+        el.style.color = danger ? '#e05252' : ACCENT
+        el.style.background = danger ? 'rgba(224,82,82,0.08)' : 'rgba(149,67,47,0.08)'
+      }}
+      onMouseLeave={e => {
+        const el = e.currentTarget as HTMLButtonElement
+        el.style.color = '#88726d'
+        el.style.background = 'transparent'
+      }}
     >
       {children}
     </button>
-  )
-}
-
-// ── DragIcon ──────────────────────────────────────────────────────────
-
-function DragIcon() {
-  return (
-    <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
-      <circle cx="3" cy="2.5" r="1.2" />
-      <circle cx="7" cy="2.5" r="1.2" />
-      <circle cx="3" cy="7"   r="1.2" />
-      <circle cx="7" cy="7"   r="1.2" />
-      <circle cx="3" cy="11.5" r="1.2" />
-      <circle cx="7" cy="11.5" r="1.2" />
-    </svg>
   )
 }

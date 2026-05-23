@@ -84,6 +84,13 @@ body {
   --font-body: var(--font-hanken, 'Hanken Grotesk', sans-serif);
 }
 
+/* Desktop: remove mobile top-bar top padding from main content area */
+@media (min-width: 768px) {
+  .dashboard-main-inner {
+    padding-top: 40px !important;
+  }
+}
+
 .dashboard ::-webkit-scrollbar-track { background: #f9f3e9; }
 .dashboard ::-webkit-scrollbar-thumb { background: #dbc1bb; border-radius: 2px; }
 

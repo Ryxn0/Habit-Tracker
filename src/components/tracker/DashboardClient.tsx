@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
-import { getDaysInMonth } from 'date-fns'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import HabitTracker from '@/components/tracker/HabitTracker'
@@ -11,19 +10,21 @@ import OverviewTab  from '@/components/tracker/OverviewTab'
 import {
   currentMonth, currentYear, monthName,
   prevMonthYear, nextMonthYear,
-  toISODate, todayISO,
 } from '@/lib/utils'
 import type { Habit, Completion } from '@/types'
 import Link from 'next/link'
-import { Menu, X } from 'lucide-react'
+import {
+  Menu, X, LayoutDashboard, CheckSquare,
+  Flame, Activity, LogOut, ChevronLeft, ChevronRight,
+} from 'lucide-react'
 
 type Tab = 'overview' | 'habits' | 'calories' | 'gym'
 
-const TABS: { key: Tab; label: string }[] = [
-  { key: 'overview',  label: 'Overview'  },
-  { key: 'habits',    label: 'Habits'    },
-  { key: 'calories',  label: 'Calories'  },
-  { key: 'gym',       label: 'Gym'       },
+const TABS: { key: Tab; label: string; icon: React.ElementType }[] = [
+  { key: 'overview',  label: 'Overview',  icon: LayoutDashboard },
+  { key: 'habits',    label: 'Habits',    icon: CheckSquare },
+  { key: 'calories',  label: 'Calories',  icon: Flame },
+  { key: 'gym',       label: 'Workout',   icon: Activity },
 ]
 
 interface Props { month: number; year: number; tab: Tab }
@@ -37,28 +38,19 @@ export default function DashboardClient({ month, year, tab }: Props) {
   const [ready,        setReady]        = useState(false)
   const [carryingOver, setCarryingOver] = useState(false)
   const [mobileOpen,   setMobileOpen]   = useState(false)
-  const [scrolled,     setScrolled]     = useState(false)
   const drawerRef = useRef<HTMLDivElement>(null)
 
-  // ── Scroll detection ─────────────────────────────────────────────────
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', onScroll)
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
-  // Close mobile menu on outside click
+  // Close mobile drawer on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (drawerRef.current && !drawerRef.current.contains(e.target as Node)) {
+      if (drawerRef.current && !drawerRef.current.contains(e.target as Node))
         setMobileOpen(false)
-      }
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
-  // ── Auth boot ────────────────────────────────────────────────────────
+  // Auth boot
   useEffect(() => {
     async function boot() {
       const supabase = createClient()
@@ -82,7 +74,7 @@ export default function DashboardClient({ month, year, tab }: Props) {
     boot()
   }, [])
 
-  // ── Habit fetch ──────────────────────────────────────────────────────
+  // Habit fetch
   const fetchHabits = useCallback(async () => {
     if (!userId) return
     setReady(false)
@@ -105,7 +97,6 @@ export default function DashboardClient({ month, year, tab }: Props) {
 
   useEffect(() => { fetchHabits() }, [fetchHabits])
 
-  // ── Derived ──────────────────────────────────────────────────────────
   const now  = { month: currentMonth(), year: currentYear() }
   const prev = prevMonthYear(month, year)
   const next = nextMonthYear(month, year)
@@ -117,7 +108,6 @@ export default function DashboardClient({ month, year, tab }: Props) {
     [completions]
   )
 
-  // ── Actions ──────────────────────────────────────────────────────────
   async function handleCarryOver() {
     if (!userId) return
     setCarryingOver(true)
@@ -142,373 +132,350 @@ export default function DashboardClient({ month, year, tab }: Props) {
 
   if (!userId) return <LoadingSkeleton />
 
-  return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+  // ── Sidebar contents (shared between desktop & mobile) ───────────────
+  function SidebarBody({ onNav }: { onNav?: () => void }) {
+    return (
+      <>
+        {/* Logo */}
+        <div style={{ padding: '28px 20px 16px' }}>
+          <Link href="/dashboard" style={{ textDecoration: 'none' }} onClick={onNav}>
+            <span style={{
+              fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 800,
+              color: '#1d1b15', letterSpacing: '-0.02em',
+            }}>
+              asiryx<span style={{ color: '#95432f' }}>.</span>
+            </span>
+          </Link>
+          <p style={{
+            fontFamily: 'var(--font-mono)', fontSize: 9.5, color: '#88726d',
+            marginTop: 4, letterSpacing: '0.12em', textTransform: 'uppercase',
+          }}>
+            Kinetic Serenity
+          </p>
+        </div>
 
-      {/* ── Fixed Header ─────────────────────────────────────────────── */}
-      <header
+        <div style={{ height: 1, background: 'rgba(219,193,187,0.25)', margin: '0 0 8px' }} />
+
+        {/* Navigation */}
+        <nav style={{ flex: 1, padding: '4px 12px', overflowY: 'auto' }}>
+          <p style={{
+            fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase',
+            letterSpacing: '0.15em', color: '#88726d',
+            padding: '6px 10px', marginBottom: 4, fontWeight: 700,
+          }}>
+            Menu
+          </p>
+          {TABS.map(({ key, label, icon: Icon }) => {
+            const active = tab === key
+            return (
+              <Link
+                key={key} href={tabUrl(key)} onClick={onNav}
+                style={{ textDecoration: 'none', display: 'block', marginBottom: 2 }}
+              >
+                <div
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '9px 10px', borderRadius: 11, cursor: 'pointer',
+                    background: active ? '#95432f' : 'transparent',
+                    color: active ? '#fff' : '#55443d',
+                    transition: 'all 0.15s',
+                  }}
+                  onMouseEnter={e => {
+                    if (!active) (e.currentTarget as HTMLDivElement).style.background = 'rgba(149,67,47,0.07)'
+                  }}
+                  onMouseLeave={e => {
+                    if (!active) (e.currentTarget as HTMLDivElement).style.background = 'transparent'
+                  }}
+                >
+                  <div style={{
+                    width: 28, height: 28, borderRadius: 7, flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: active ? 'rgba(255,255,255,0.2)' : 'rgba(219,193,187,0.3)',
+                    transition: 'background 0.15s',
+                  }}>
+                    <Icon size={14} />
+                  </div>
+                  <span style={{ fontSize: 13.5, fontWeight: active ? 600 : 500, fontFamily: 'var(--font-body)' }}>
+                    {label}
+                  </span>
+                  {active && (
+                    <div style={{
+                      marginLeft: 'auto', width: 5, height: 5,
+                      borderRadius: '50%', background: 'rgba(255,255,255,0.6)',
+                    }} />
+                  )}
+                </div>
+              </Link>
+            )
+          })}
+        </nav>
+
+        {/* Bottom panel */}
+        <div style={{ padding: '12px', margin: '8px 12px 16px', borderRadius: 16, background: 'rgba(219,193,187,0.1)', border: '1px solid rgba(219,193,187,0.18)' }}>
+          {tab === 'habits' && (
+            <div style={{ marginBottom: 12 }}>
+              <p style={{
+                fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase',
+                letterSpacing: '0.15em', color: '#88726d', marginBottom: 8, fontWeight: 700,
+              }}>
+                Period
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Link href={`/dashboard?month=${prev.month}&year=${prev.year}&tab=habits`} style={{ textDecoration: 'none' }}>
+                  <button style={{
+                    width: 28, height: 28, borderRadius: 8, border: '1px solid rgba(219,193,187,0.5)',
+                    background: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#88726d',
+                  }}>
+                    <ChevronLeft size={13} />
+                  </button>
+                </Link>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#55443d', fontWeight: 600, letterSpacing: '0.04em' }}>
+                  {monthName(month)} {year}
+                </span>
+                <Link href={`/dashboard?month=${next.month}&year=${next.year}&tab=habits`} style={{ textDecoration: 'none' }}>
+                  <button style={{
+                    width: 28, height: 28, borderRadius: 8, border: '1px solid rgba(219,193,187,0.5)',
+                    background: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#88726d',
+                  }}>
+                    <ChevronRight size={13} />
+                  </button>
+                </Link>
+              </div>
+              {!isCurrentMonth && (
+                <Link href="/dashboard?tab=habits" style={{ textDecoration: 'none', display: 'block', marginTop: 8, textAlign: 'center' }}>
+                  <span style={{
+                    fontFamily: 'var(--font-mono)', fontSize: 10, color: '#95432f',
+                    letterSpacing: '0.1em', textTransform: 'uppercase',
+                    background: 'rgba(149,67,47,0.08)', padding: '4px 10px', borderRadius: 999,
+                  }}>
+                    Today
+                  </span>
+                </Link>
+              )}
+            </div>
+          )}
+
+          <button
+            onClick={handleSignOut}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+              padding: '8px 10px', borderRadius: 9, border: 'none',
+              background: 'transparent', cursor: 'pointer',
+              color: '#88726d', fontSize: 13, fontFamily: 'var(--font-body)',
+              transition: 'all 0.15s',
+            }}
+            onMouseEnter={e => {
+              const el = e.currentTarget as HTMLButtonElement
+              el.style.background = 'rgba(149,67,47,0.08)'
+              el.style.color = '#95432f'
+            }}
+            onMouseLeave={e => {
+              const el = e.currentTarget as HTMLButtonElement
+              el.style.background = 'transparent'
+              el.style.color = '#88726d'
+            }}
+          >
+            <LogOut size={14} />
+            Sign out
+          </button>
+        </div>
+      </>
+    )
+  }
+
+  return (
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
+
+      {/* ── Desktop Sidebar ─────────────────────────────────────────── */}
+      <aside
+        className="hidden md:flex"
         style={{
-          position: 'fixed', top: 0, left: 0, width: '100%', zIndex: 40,
-          transition: 'all 0.3s',
-          background: scrolled ? 'rgba(255,249,238,0.95)' : 'rgba(255,249,238,0.85)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(136,114,109,0.1)',
-          boxShadow: scrolled ? '0 1px 12px rgba(149,67,47,0.06)' : 'none',
+          position: 'fixed', top: 0, left: 0, bottom: 0, width: 240,
+          background: 'rgba(255, 252, 245, 0.97)',
+          backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+          borderRight: '1px solid rgba(219, 193, 187, 0.25)',
+          flexDirection: 'column', zIndex: 40,
         }}
       >
-        <div style={{ maxWidth: 1440, margin: '0 auto', padding: '0 24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', height: scrolled ? 60 : 72, gap: 16, transition: 'height 0.3s' }}>
+        <SidebarBody />
+      </aside>
 
-            {/* Logo */}
-            <Link href="/dashboard" style={{ textDecoration: 'none', flexShrink: 0 }}>
-              <span style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 24,
-                fontWeight: 800,
-                color: '#1d1b15',
-                letterSpacing: '-0.02em',
-              }}>
-                asiryx<span style={{ color: '#95432f' }}>.</span>
-              </span>
-            </Link>
+      {/* ── Mobile Top Bar ───────────────────────────────────────────── */}
+      <div
+        className="md:hidden"
+        style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 40, height: 54,
+          background: 'rgba(255,252,245,0.97)',
+          backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(219,193,187,0.22)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 16px',
+        }}
+      >
+        <Link href="/dashboard" style={{ textDecoration: 'none' }}>
+          <span style={{
+            fontFamily: 'var(--font-display)', fontSize: 19, fontWeight: 800,
+            color: '#1d1b15', letterSpacing: '-0.02em',
+          }}>
+            asiryx<span style={{ color: '#95432f' }}>.</span>
+          </span>
+        </Link>
+        <button
+          onClick={() => setMobileOpen(v => !v)}
+          style={{
+            width: 36, height: 36, borderRadius: '50%', border: 'none',
+            background: mobileOpen ? 'rgba(149,67,47,0.1)' : 'transparent',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#1d1b15', transition: 'all 0.2s',
+          }}
+        >
+          {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+        </button>
+      </div>
 
-            {/* Desktop pill nav */}
-            <nav
-              className="hidden md:flex"
-              style={{
-                flex: 1, justifyContent: 'center',
-                display: 'flex',
-              }}
-            >
-              <div style={{
-                display: 'flex', gap: 2, padding: '4px',
-                background: 'rgba(219,193,187,0.25)',
-                borderRadius: 999,
-                border: '1px solid rgba(219,193,187,0.4)',
-              }}>
-                {TABS.map(({ key, label }) => (
-                  <Link key={key} href={tabUrl(key)} style={{ textDecoration: 'none' }}>
-                    <span style={{
-                      display: 'inline-block',
-                      padding: '7px 20px',
-                      borderRadius: 999,
-                      fontSize: 14,
-                      fontWeight: 600,
-                      fontFamily: 'var(--font-body)',
-                      transition: 'all 0.2s',
-                      background: tab === key ? '#95432f' : 'transparent',
-                      color: tab === key ? '#ffffff' : '#55443d',
-                      cursor: 'pointer',
-                    }}>
-                      {label}
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </nav>
-
-            {/* Mobile hamburger */}
-            <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }} className="md:hidden">
-              <button
-                onClick={() => setMobileOpen(v => !v)}
-                style={{
-                  width: 40, height: 40, borderRadius: '50%',
-                  background: mobileOpen ? 'rgba(149,67,47,0.1)' : 'transparent',
-                  border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#1d1b15', transition: 'all 0.2s',
-                }}
-              >
-                {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-              </button>
-            </div>
-
-            {/* Desktop: hamburger for sign out */}
-            <div style={{ flexShrink: 0 }} className="hidden md:block">
-              <button
-                onClick={handleSignOut}
-                style={{
-                  padding: '7px 16px', borderRadius: 999, fontSize: 13,
-                  fontFamily: 'var(--font-mono)',
-                  background: 'transparent',
-                  border: '1px solid rgba(136,114,109,0.3)',
-                  color: '#88726d', cursor: 'pointer',
-                  transition: 'all 0.2s',
-                }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLButtonElement).style.background = '#f3ede3'
-                  ;(e.currentTarget as HTMLButtonElement).style.color = '#1d1b15'
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
-                  ;(e.currentTarget as HTMLButtonElement).style.color = '#88726d'
-                }}
-              >
-                Sign out
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* ── Mobile Drawer ─────────────────────────────────────────────── */}
+      {/* ── Mobile Drawer ────────────────────────────────────────────── */}
       {mobileOpen && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 30 }}>
+        <div className="md:hidden" style={{ position: 'fixed', inset: 0, zIndex: 50 }}>
           <div
             onClick={() => setMobileOpen(false)}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(29,27,21,0.25)', backdropFilter: 'blur(8px)' }}
+            style={{
+              position: 'fixed', inset: 0,
+              background: 'rgba(29,27,21,0.28)', backdropFilter: 'blur(6px)',
+            }}
           />
           <div
             ref={drawerRef}
-            className="animate-slide-left"
             style={{
-              position: 'absolute', top: 0, right: 0, bottom: 0,
-              width: 280, background: '#fff9ee',
-              borderLeft: '1px solid rgba(219,193,187,0.3)',
-              boxShadow: '-8px 0 32px rgba(149,67,47,0.1)',
-              padding: '80px 24px 32px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+              position: 'absolute', top: 0, left: 0, bottom: 0, width: 264,
+              background: '#fff9ee',
+              borderRight: '1px solid rgba(219,193,187,0.3)',
+              boxShadow: '8px 0 48px rgba(149,67,47,0.12)',
+              display: 'flex', flexDirection: 'column',
+              paddingTop: 54,
             }}
           >
-            <div>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#88726d', fontWeight: 700 }}>
-                Navigation
-              </span>
-              <nav style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 20 }}>
-                {TABS.map(({ key, label }) => (
-                  <Link
-                    key={key}
-                    href={tabUrl(key)}
-                    onClick={() => setMobileOpen(false)}
-                    style={{
-                      textDecoration: 'none', padding: '12px 16px', borderRadius: 14, fontSize: 18,
-                      fontFamily: 'var(--font-display)', fontWeight: 700,
-                      background: tab === key ? '#95432f' : 'transparent',
-                      color: tab === key ? '#ffffff' : '#55443d',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </nav>
-            </div>
-
-            <div>
-              <div style={{ borderTop: '1px solid rgba(219,193,187,0.3)', paddingTop: 20, marginBottom: 16 }}>
-                <button
-                  onClick={handleSignOut}
-                  style={{
-                    width: '100%', padding: '10px 16px', textAlign: 'left',
-                    fontFamily: 'var(--font-mono)', fontSize: 13, color: '#88726d',
-                    background: 'none', border: 'none', cursor: 'pointer', borderRadius: 8,
-                    transition: 'all 0.15s',
-                  }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#f3ede3'; (e.currentTarget as HTMLButtonElement).style.color = '#1d1b15' }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none'; (e.currentTarget as HTMLButtonElement).style.color = '#88726d' }}
-                >
-                  Sign out
-                </button>
-              </div>
-              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#88726d', opacity: 0.6 }}>
-                Asiryx · Continuous Somatic Tracking
-              </p>
-            </div>
+            <SidebarBody onNav={() => setMobileOpen(false)} />
           </div>
         </div>
       )}
 
-      {/* ── Main content ─────────────────────────────────────────────── */}
-      <main style={{ flex: 1, maxWidth: 1440, margin: '0 auto', width: '100%', padding: '100px 24px 48px' }}>
+      {/* ── Main Content ─────────────────────────────────────────────── */}
+      <main
+        className="md:ml-60"
+        style={{ flex: 1, padding: '70px 28px 52px 28px' }}
+      >
+        {/* Desktop removes the top padding for the mobile top bar */}
+        <style>{`@media (min-width: 768px) { .dashboard-main-inner { padding-top: 40px !important; } }`}</style>
+        <div
+          className="dashboard-main-inner"
+          style={{ maxWidth: 1100, margin: '0 auto', paddingTop: 70 }}
+        >
 
-        {/* OVERVIEW */}
-        {tab === 'overview' && (
-          <OverviewTab
-            userId={userId!}
-            month={month}
-            year={year}
-            dailyHabits={dailyHabits}
-            weeklyHabits={weeklyHabits}
-            completionSet={completionSet}
-            completions={completions}
-            setTab={(t: Tab) => router.push(tabUrl(t))}
-          />
-        )}
+          {/* Section header for non-overview tabs */}
+          {tab !== 'overview' && (
+            <ViewHeader
+              label={
+                tab === 'habits'   ? 'HABIT TRACKER'      :
+                tab === 'calories' ? 'NUTRITION & FUEL'   : 'GYM & MUSCULAR FLOW'
+              }
+              title={
+                tab === 'habits'   ? 'Daily Habits' :
+                tab === 'calories' ? 'Calories'     : 'Workout'
+              }
+              sub={tab !== 'habits' ? `today · ${todayStr}` : undefined}
+            />
+          )}
 
-        {/* HABITS */}
-        {tab === 'habits' && (
-          <div>
-            <ViewHeader label="HABIT TRACKER" title="Daily Habits">
-              <MonthNav month={month} year={year} prev={prev} next={next} isCurrentMonth={isCurrentMonth} />
-            </ViewHeader>
+          {/* OVERVIEW */}
+          {tab === 'overview' && (
+            <OverviewTab
+              userId={userId!} month={month} year={year}
+              dailyHabits={dailyHabits} weeklyHabits={weeklyHabits}
+              completionSet={completionSet} completions={completions}
+              setTab={(t: Tab) => router.push(tabUrl(t))}
+            />
+          )}
 
-            {ready && allHabits.length === 0 ? (
-              <div style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                padding: '64px 0', border: '1px dashed rgba(219,193,187,0.5)', borderRadius: 20, gap: 12,
-                background: 'rgba(255,255,255,0.3)',
-              }}>
-                <p style={{ color: '#88726d', fontSize: 14, margin: 0 }}>
-                  No habits for {monthName(month)} {year}
-                </p>
-                <button
-                  onClick={handleCarryOver}
-                  disabled={carryingOver}
-                  style={{
-                    padding: '10px 24px', borderRadius: 999, fontSize: 14,
-                    fontWeight: 600, cursor: carryingOver ? 'default' : 'pointer',
-                    border: 'none', background: '#95432f', color: '#fff',
-                    opacity: carryingOver ? 0.6 : 1, transition: 'opacity 0.2s',
-                  }}
-                >
-                  {carryingOver ? 'Carrying over...' : `Carry over from ${monthName(prev.month)} ${prev.year}`}
-                </button>
-              </div>
-            ) : (
-              <HabitTracker
-                dailyHabits={dailyHabits}
-                weeklyHabits={weeklyHabits}
-                completions={completions}
-                month={month}
-                year={year}
-                userId={userId!}
-              />
-            )}
-          </div>
-        )}
+          {/* HABITS */}
+          {tab === 'habits' && (
+            <div>
+              {ready && allHabits.length === 0 ? (
+                <div style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  padding: '64px 0', border: '1px dashed rgba(219,193,187,0.5)',
+                  borderRadius: 20, gap: 12, background: 'rgba(255,255,255,0.3)',
+                }}>
+                  <p style={{ color: '#88726d', fontSize: 14, margin: 0 }}>
+                    No habits for {monthName(month)} {year}
+                  </p>
+                  <button
+                    onClick={handleCarryOver}
+                    disabled={carryingOver}
+                    style={{
+                      padding: '10px 24px', borderRadius: 999, fontSize: 14,
+                      fontWeight: 600, cursor: carryingOver ? 'default' : 'pointer',
+                      border: 'none', background: '#95432f', color: '#fff',
+                      opacity: carryingOver ? 0.6 : 1, transition: 'opacity 0.2s',
+                    }}
+                  >
+                    {carryingOver ? 'Carrying over…' : `Carry over from ${monthName(prev.month)} ${prev.year}`}
+                  </button>
+                </div>
+              ) : (
+                <HabitTracker
+                  dailyHabits={dailyHabits} weeklyHabits={weeklyHabits}
+                  completions={completions} month={month} year={year} userId={userId!}
+                />
+              )}
+            </div>
+          )}
 
-        {/* CALORIES */}
-        {tab === 'calories' && (
-          <div>
-            <ViewHeader label="NUTRITION & FUEL" title="Calories" sub={`today · ${todayStr}`} />
-            <CaloriesTab userId={userId!} />
-          </div>
-        )}
+          {/* CALORIES */}
+          {tab === 'calories' && <CaloriesTab userId={userId!} />}
 
-        {/* GYM */}
-        {tab === 'gym' && (
-          <div>
-            <ViewHeader label="GYM & MUSCULAR FLOW" title="Workout" sub={`today · ${todayStr}`} />
-            <GymTab userId={userId!} />
-          </div>
-        )}
+          {/* GYM */}
+          {tab === 'gym' && <GymTab userId={userId!} />}
+        </div>
       </main>
-
-      {/* ── Footer ───────────────────────────────────────────────────── */}
-      <footer style={{
-        borderTop: '1px solid rgba(136,114,109,0.12)',
-        padding: '20px 24px',
-        textAlign: 'center',
-        fontSize: 12,
-        color: '#88726d',
-        fontFamily: 'var(--font-mono)',
-        letterSpacing: '0.06em',
-      }}>
-        asiryx · small actions, big results.
-      </footer>
     </div>
   )
 }
 
-// ── ViewHeader ────────────────────────────────────────────────────────
+// ── ViewHeader ────────────────────────────────────────────────────────────
 
 function ViewHeader({
-  label, title, sub, children,
+  label, title, sub,
 }: {
   label: string
   title: string
   sub?: string
-  children?: React.ReactNode
 }) {
   return (
-    <div style={{ marginBottom: 32 }}>
+    <div style={{ marginBottom: 36 }}>
       <p style={{
         fontSize: 10, fontFamily: 'var(--font-mono)', letterSpacing: '0.15em',
         color: '#88726d', textTransform: 'uppercase', marginBottom: 8, fontWeight: 700,
       }}>
         {label}
       </p>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
-          <h1 style={{
-            fontFamily: 'var(--font-display)', fontSize: 40, fontWeight: 800,
-            color: '#1d1b15', lineHeight: 1, margin: 0, letterSpacing: '-0.02em',
-          }}>
-            {title}
-          </h1>
-          {sub && (
-            <span style={{ fontSize: 13, color: '#88726d', fontFamily: 'var(--font-mono)' }}>{sub}</span>
-          )}
-        </div>
-        {children}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
+        <h1 style={{
+          fontFamily: 'var(--font-display)', fontSize: 40, fontWeight: 800,
+          color: '#1d1b15', lineHeight: 1, margin: 0, letterSpacing: '-0.02em',
+        }}>
+          {title}
+        </h1>
+        {sub && (
+          <span style={{ fontSize: 13, color: '#88726d', fontFamily: 'var(--font-mono)' }}>{sub}</span>
+        )}
       </div>
     </div>
   )
 }
 
-// ── MonthNav ──────────────────────────────────────────────────────────
-
-function MonthNav({
-  month, year, prev, next, isCurrentMonth,
-}: {
-  month: number; year: number
-  prev: { month: number; year: number }
-  next: { month: number; year: number }
-  isCurrentMonth: boolean
-}) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-      <Link
-        href={`/dashboard?month=${prev.month}&year=${prev.year}&tab=habits`}
-        style={{
-          width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          borderRadius: 8, border: '1px solid rgba(219,193,187,0.5)', color: '#88726d',
-          textDecoration: 'none', fontSize: 14, background: 'rgba(255,255,255,0.6)',
-          transition: 'all 0.15s',
-        }}
-      >
-        ←
-      </Link>
-
-      <span style={{
-        padding: '5px 12px', borderRadius: 999, fontSize: 12,
-        fontFamily: 'var(--font-mono)', letterSpacing: '0.06em',
-        background: isCurrentMonth ? 'rgba(149,67,47,0.08)' : 'rgba(255,255,255,0.6)',
-        color: isCurrentMonth ? '#95432f' : '#88726d',
-        border: `1px solid ${isCurrentMonth ? 'rgba(149,67,47,0.25)' : 'rgba(219,193,187,0.5)'}`,
-      }}>
-        {monthName(month)} {year}
-      </span>
-
-      {!isCurrentMonth && (
-        <Link
-          href="/dashboard?tab=habits"
-          style={{
-            padding: '5px 10px', borderRadius: 999, fontSize: 11,
-            fontFamily: 'var(--font-mono)', letterSpacing: '0.1em',
-            color: '#95432f', textDecoration: 'none',
-            border: '1px solid rgba(149,67,47,0.3)', background: 'rgba(149,67,47,0.06)',
-          }}
-        >
-          TODAY
-        </Link>
-      )}
-
-      <Link
-        href={`/dashboard?month=${next.month}&year=${next.year}&tab=habits`}
-        style={{
-          width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          borderRadius: 8, border: '1px solid rgba(219,193,187,0.5)', color: '#88726d',
-          textDecoration: 'none', fontSize: 14, background: 'rgba(255,255,255,0.6)',
-          transition: 'all 0.15s',
-        }}
-      >
-        →
-      </Link>
-    </div>
-  )
-}
-
-// ── LoadingSkeleton ───────────────────────────────────────────────────
+// ── LoadingSkeleton ───────────────────────────────────────────────────────
 
 function LoadingSkeleton() {
   return (
@@ -523,7 +490,7 @@ function LoadingSkeleton() {
         animation: 'spin 0.8s linear infinite',
       }} />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      <p style={{ color: '#88726d', fontSize: 13, fontFamily: 'monospace' }}>loading...</p>
+      <p style={{ color: '#88726d', fontSize: 13, fontFamily: 'monospace' }}>loading…</p>
     </div>
   )
 }
