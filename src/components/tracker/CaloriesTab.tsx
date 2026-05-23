@@ -112,15 +112,15 @@ export default function CaloriesTab({ userId }: Props) {
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '9px 13px', borderRadius: 12, fontSize: 13,
-    fontFamily: 'var(--font-body)', background: 'rgba(255,255,255,0.8)',
-    border: '1px solid rgba(100,116,139,0.4)', outline: 'none', color: '#0F172A',
+    fontFamily: 'var(--font-body)', background: 'rgba(15,23,42,0.7)',
+    border: '1px solid rgba(148,163,184,0.2)', outline: 'none', color: '#F1F5F9',
     boxSizing: 'border-box', transition: 'border-color 0.15s',
   }
 
   const card: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(20px)',
+    background: 'rgba(15,23,42,0.7)', backdropFilter: 'blur(20px)',
     WebkitBackdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255,255,255,0.55)', borderRadius: 22, padding: '28px',
+    border: '1px solid rgba(99,102,241,0.12)', borderRadius: 22, padding: '28px',
   }
 
   return (
@@ -128,7 +128,7 @@ export default function CaloriesTab({ userId }: Props) {
 
       {/* ── Progress panel ─────────────────────────────────────────── */}
       <div style={{ ...card, position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', bottom: -32, left: -32, width: 140, height: 140, background: 'rgba(241,245,249,0.6)', borderRadius: '50%', filter: 'blur(40px)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: -32, left: -32, width: 140, height: 140, background: 'rgba(99,102,241,0.06)', borderRadius: '50%', filter: 'blur(40px)', pointerEvents: 'none' }} />
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
           <div className="md:col-span-8" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -139,8 +139,8 @@ export default function CaloriesTab({ userId }: Props) {
 
             <div className="grid grid-cols-3 gap-4">
               {[
-                { label: 'Consumed', value: totalCals.toLocaleString(), color: '#0F172A' },
-                { label: 'Daily Goal', value: calGoal.toLocaleString(), color: '#0F172A' },
+                { label: 'Consumed', value: totalCals.toLocaleString(), color: '#F1F5F9' },
+                { label: 'Daily Goal', value: calGoal.toLocaleString(), color: '#F1F5F9' },
                 { label: 'Remaining', value: remaining.toLocaleString(), color: ACCENT },
               ].map(m => (
                 <div key={m.label}>
@@ -162,8 +162,8 @@ export default function CaloriesTab({ userId }: Props) {
             </div>
           </div>
 
-          <div className="md:col-span-4" style={{ padding: '20px', background: 'rgba(241,245,249,0.6)', borderRadius: 16, border: '1px solid rgba(100,116,139,0.2)', textAlign: 'center' }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#475569', lineHeight: 1.6, marginBottom: 10 }}>
+          <div className="md:col-span-4" style={{ padding: '20px', background: 'rgba(30,41,59,0.5)', borderRadius: 16, border: '1px solid rgba(99,102,241,0.12)', textAlign: 'center' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#CBD5E1', lineHeight: 1.6, marginBottom: 10 }}>
               {pctDone >= 100
                 ? 'Caloric threshold saturated. Metabolic engine fully stoked for cellular rest.'
                 : 'Sub-metabolic state active. Autodynamic energy flow in process.'}
@@ -201,7 +201,7 @@ export default function CaloriesTab({ userId }: Props) {
               <Sparkles size={16} color={ACCENT} />
               Somatic Quick-Logs
             </h3>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#475569', marginBottom: 16 }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#CBD5E1', marginBottom: 16 }}>
               Tap any nutrient-dense item below to instantly log it:
             </p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -210,12 +210,12 @@ export default function CaloriesTab({ userId }: Props) {
                   key={food.name}
                   onClick={() => quickAdd(food)}
                   style={{
-                    padding: '14px', background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(100,116,139,0.3)',
+                    padding: '14px', background: 'rgba(30,41,59,0.6)', border: '1px solid rgba(99,102,241,0.12)',
                     borderRadius: 16, textAlign: 'left', cursor: 'pointer', transition: 'all 0.2s',
                     display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: 96,
                   }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.95)'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)' }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.7)'; (e.currentTarget as HTMLButtonElement).style.transform = '' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(30,41,59,0.9)'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(30,41,59,0.6)'; (e.currentTarget as HTMLButtonElement).style.transform = '' }}
                 >
                   <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 700, color: '#0F172A', margin: 0, lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{food.name}</p>
                   <div>
@@ -232,7 +232,7 @@ export default function CaloriesTab({ userId }: Props) {
             <h3 style={{ fontFamily: 'var(--font-mono)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.15em', color: '#64748B', fontWeight: 700, marginBottom: 14 }}>Today's Logs</h3>
 
             {entries.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '32px', background: 'rgba(255,255,255,0.3)', borderRadius: 16, border: '1px dashed rgba(100,116,139,0.5)' }}>
+              <div style={{ textAlign: 'center', padding: '32px', background: 'rgba(30,41,59,0.3)', borderRadius: 16, border: '1px dashed rgba(99,102,241,0.2)' }}>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#64748B', margin: 0 }}>No fuel tracked yet. Use quick-logs or add a custom entry.</p>
               </div>
             ) : (
@@ -251,7 +251,7 @@ export default function CaloriesTab({ userId }: Props) {
                         {mealEntries.map(entry => (
                           <div
                             key={entry.id}
-                            style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(100,116,139,0.2)', borderRadius: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                            style={{ padding: '12px 16px', background: 'rgba(30,41,59,0.5)', border: '1px solid rgba(99,102,241,0.1)', borderRadius: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                           >
                             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                               <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 600, color: '#0F172A' }}>{entry.food_name}</span>
@@ -360,9 +360,9 @@ export default function CaloriesTab({ userId }: Props) {
               </button>
             </form>
 
-            <div style={{ borderTop: '1px solid rgba(100,116,139,0.3)', paddingTop: 16, display: 'flex', gap: 10, background: 'rgba(226,232,240,0.2)', padding: '14px', borderRadius: 12 }}>
+            <div style={{ borderTop: '1px solid rgba(99,102,241,0.15)', paddingTop: 16, display: 'flex', gap: 10, background: 'rgba(30,41,59,0.4)', padding: '14px', borderRadius: 12 }}>
               <ShieldAlert size={18} color={ACCENT} style={{ flexShrink: 0, marginTop: 1 }} />
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#475569', lineHeight: 1.6, margin: 0 }}>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#94A3B8', lineHeight: 1.6, margin: 0 }}>
                 Aim for unrefined whole macronutrients for optimal recovery results.
               </p>
             </div>

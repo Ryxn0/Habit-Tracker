@@ -231,7 +231,7 @@ function HabitSection({
             <div style={{ width: 3, height: 26, borderRadius: 2, background: ACCENT, flexShrink: 0 }} />
             <h2 style={{
               fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 800,
-              color: '#0F172A', margin: 0, letterSpacing: '-0.02em',
+              color: '#F1F5F9', margin: 0, letterSpacing: '-0.02em',
             }}>
               {title}
             </h2>
@@ -286,8 +286,8 @@ function HabitSection({
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center',
           justifyContent: 'center', padding: '56px 24px', borderRadius: 20,
-          border: '1.5px dashed rgba(100,116,139,0.55)',
-          background: 'rgba(255,255,255,0.4)',
+          border: '1.5px dashed rgba(99,102,241,0.2)',
+          background: 'rgba(30,41,59,0.3)',
           gap: 12,
         }}>
           <div style={{
@@ -298,7 +298,7 @@ function HabitSection({
             <Plus size={20} color={ACCENT} />
           </div>
           <div style={{ textAlign: 'center' }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 14, color: '#0F172A', margin: '0 0 4px' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 14, color: '#F1F5F9', margin: '0 0 4px' }}>
               No {type} habits yet
             </p>
             <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#64748B', margin: 0 }}>
@@ -385,12 +385,12 @@ function HabitCard({
         opacity:    isDragging ? 0.55 : 1,
         zIndex:     isDragging ? 20 : undefined,
         animationDelay: `${index * 45}ms`,
-        // Glass card
-        background: 'rgba(255, 255, 255, 0.78)',
+        // Dark glass card
+        background: 'rgba(15, 23, 42, 0.7)',
         backdropFilter: 'blur(14px)',
         WebkitBackdropFilter: 'blur(14px)',
-        border: '1px solid rgba(255, 255, 255, 0.92)',
-        borderLeft: `3px solid ${hasStreak ? ACCENT : 'rgba(100,116,139,0.45)'}`,
+        border: '1px solid rgba(99, 102, 241, 0.12)',
+        borderLeft: `3px solid ${hasStreak ? ACCENT : 'rgba(100,116,139,0.3)'}`,
         borderRadius: 16,
         boxShadow: `0 4px 20px rgba(99,102,241,${hasStreak ? '0.07' : '0.03'})`,
         padding: '18px 22px',
@@ -430,7 +430,7 @@ function HabitCard({
         {/* Habit name */}
         <span style={{
           fontFamily: 'var(--font-body)', fontSize: 14.5, fontWeight: 600,
-          color: '#0F172A', flex: 1, letterSpacing: '-0.01em',
+          color: '#F1F5F9', flex: 1, letterSpacing: '-0.01em',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>
           {habit.name}
@@ -624,7 +624,7 @@ function HabitCard({
             alignItems: 'flex-end', paddingLeft: 16, borderLeft: '1px solid rgba(100,116,139,0.25)',
             minWidth: 72, flexShrink: 0,
           }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 800, color: '#0F172A', lineHeight: 1 }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 800, color: '#F1F5F9', lineHeight: 1 }}>
               {done}
             </span>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#64748B', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 3 }}>
@@ -680,10 +680,10 @@ function DeleteConfirmModal({ name, onConfirm, onCancel }: {
       <div
         className="w-full max-w-sm text-center"
         style={{
-          background: 'rgba(255,255,255,0.88)',
+          background: 'rgba(15,23,42,0.95)',
           backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)',
-          border: '1px solid rgba(100,116,139,0.45)', borderRadius: 22, padding: '32px 28px',
-          boxShadow: '0 20px 60px rgba(15,23,42,0.12)',
+          border: '1px solid rgba(99,102,241,0.2)', borderRadius: 22, padding: '32px 28px',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
           animation: 'slideUp 0.2s ease',
         }}
       >
@@ -698,11 +698,11 @@ function DeleteConfirmModal({ name, onConfirm, onCancel }: {
           <Trash2 size={18} color={ACCENT} />
         </div>
 
-        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 800, color: '#0F172A', margin: '0 0 10px' }}>
+        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 800, color: '#F1F5F9', margin: '0 0 10px' }}>
           Remove habit?
         </h3>
-        <p style={{ fontFamily: 'var(--font-body)', fontSize: 13.5, color: '#475569', lineHeight: 1.6, margin: '0 0 24px' }}>
-          <span style={{ color: '#0F172A', fontWeight: 600 }}>&ldquo;{name}&rdquo;</span> and all its
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: 13.5, color: '#94A3B8', lineHeight: 1.6, margin: '0 0 24px' }}>
+          <span style={{ color: '#F1F5F9', fontWeight: 600 }}>&ldquo;{name}&rdquo;</span> and all its
           completion history will be permanently deleted.
         </p>
 
@@ -712,9 +712,9 @@ function DeleteConfirmModal({ name, onConfirm, onCancel }: {
             style={{
               flex: 1, padding: '11px', borderRadius: 999, fontSize: 13, fontWeight: 600,
               fontFamily: 'var(--font-body)', cursor: 'pointer', transition: 'all 0.15s',
-              background: 'transparent', border: '1px solid rgba(100,116,139,0.6)', color: '#475569',
+              background: 'transparent', border: '1px solid rgba(148,163,184,0.25)', color: '#94A3B8',
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#EEF2FF' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(99,102,241,0.08)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
           >
             Cancel

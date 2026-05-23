@@ -117,15 +117,15 @@ export default function GymTab({ userId }: Props) {
   const totalSets   = exercises.reduce((s, e) => s + e.sets, 0)
 
   const card: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(20px)',
+    background: 'rgba(15,23,42,0.7)', backdropFilter: 'blur(20px)',
     WebkitBackdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255,255,255,0.55)', borderRadius: 22, padding: '24px',
+    border: '1px solid rgba(99,102,241,0.12)', borderRadius: 22, padding: '24px',
   }
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '9px 13px', borderRadius: 12, fontSize: 13,
-    fontFamily: 'var(--font-body)', background: 'rgba(255,255,255,0.8)',
-    border: '1px solid rgba(100,116,139,0.4)', outline: 'none', color: '#0F172A',
+    fontFamily: 'var(--font-body)', background: 'rgba(15,23,42,0.7)',
+    border: '1px solid rgba(148,163,184,0.2)', outline: 'none', color: '#F1F5F9',
     boxSizing: 'border-box', transition: 'border-color 0.15s',
   }
 
@@ -145,10 +145,10 @@ export default function GymTab({ userId }: Props) {
                   style={{ ...card, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: 220, cursor: 'default', padding: '22px' }}
                 >
                   <div>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748B', background: '#F1F5F9', padding: '3px 10px', borderRadius: 999, border: '1px solid rgba(100,116,139,0.3)', display: 'inline-block', marginBottom: 12 }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94A3B8', background: 'rgba(30,41,59,0.7)', padding: '3px 10px', borderRadius: 999, border: '1px solid rgba(99,102,241,0.15)', display: 'inline-block', marginBottom: 12 }}>
                       {routine.difficulty}
                     </span>
-                    <h4 style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 700, color: '#0F172A', lineHeight: 1.2, margin: '0 0 8px' }}>{routine.name}</h4>
+                    <h4 style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 700, color: '#F1F5F9', lineHeight: 1.2, margin: '0 0 8px' }}>{routine.name}</h4>
                     <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#64748B', margin: 0 }}>{routine.exercises.length} key exercises · {routine.duration}</p>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
@@ -202,11 +202,11 @@ export default function GymTab({ userId }: Props) {
           </div>
 
           <div className="lg:col-span-4" style={{ ...card, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', gap: 14 }}>
-            <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#F1F5F9', border: '1px solid rgba(100,116,139,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(30,41,59,0.7)', border: '1px solid rgba(99,102,241,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Award size={24} color={ACCENT} />
             </div>
-            <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: '#0F172A', fontSize: 18, margin: 0 }}>Continuous Sculpt</h3>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#475569', lineHeight: 1.65, margin: 0 }}>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: '#F1F5F9', fontSize: 18, margin: 0 }}>Continuous Sculpt</h3>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#94A3B8', lineHeight: 1.65, margin: 0 }}>
               Every somatic rep checked primes down tension, increases muscular alignment, and reinforces clean, intentional energy flow.
             </p>
           </div>
@@ -219,20 +219,20 @@ export default function GymTab({ userId }: Props) {
             <div style={{ ...card, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: 14 }}>
               <div>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', color: ACCENT, fontWeight: 700 }}>Active Session</span>
-                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 800, color: '#0F172A', margin: '4px 0 0', letterSpacing: '-0.02em' }}>{session.name}</h3>
+                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 800, color: '#F1F5F9', margin: '4px 0 0', letterSpacing: '-0.02em' }}>{session.name}</h3>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button
                   onClick={() => { if (confirm('End this session?')) { setSession(null); setExercises([]) } }}
-                  style={{ padding: '8px 16px', borderRadius: 999, fontSize: 12, fontWeight: 600, fontFamily: 'var(--font-body)', background: 'none', border: '1px solid rgba(100,116,139,0.6)', color: '#475569', cursor: 'pointer', transition: 'all 0.2s' }}
+                  style={{ padding: '8px 16px', borderRadius: 999, fontSize: 12, fontWeight: 600, fontFamily: 'var(--font-body)', background: 'none', border: '1px solid rgba(148,163,184,0.25)', color: '#94A3B8', cursor: 'pointer', transition: 'all 0.2s' }}
                   onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#ef4444'; (e.currentTarget as HTMLButtonElement).style.color = '#ef4444' }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(100,116,139,0.6)'; (e.currentTarget as HTMLButtonElement).style.color = '#475569' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(148,163,184,0.25)'; (e.currentTarget as HTMLButtonElement).style.color = '#94A3B8' }}
                 >
                   End
                 </button>
                 <button
                   onClick={() => setShowExForm(v => !v)}
-                  style={{ padding: '8px 20px', borderRadius: 999, fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-body)', background: showExForm ? '#EEF2FF' : ACCENT, color: showExForm ? '#475569' : '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}
+                  style={{ padding: '8px 20px', borderRadius: 999, fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-body)', background: showExForm ? 'rgba(99,102,241,0.1)' : ACCENT, color: showExForm ? '#94A3B8' : '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}
                 >
                   {showExForm ? 'Cancel' : '+ Add exercise'}
                 </button>
@@ -288,7 +288,7 @@ export default function GymTab({ userId }: Props) {
 
             {/* Exercise list */}
             {exercises.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: 40, background: 'rgba(255,255,255,0.3)', borderRadius: 16, border: '1px dashed rgba(100,116,139,0.5)' }}>
+              <div style={{ textAlign: 'center', padding: 40, background: 'rgba(30,41,59,0.3)', borderRadius: 16, border: '1px dashed rgba(99,102,241,0.2)' }}>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#64748B', margin: '0 0 12px' }}>No exercises yet</p>
                 <button onClick={() => setShowExForm(true)} style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: ACCENT, background: 'none', border: 'none', cursor: 'pointer' }}>
                   Add your first exercise →
@@ -302,10 +302,10 @@ export default function GymTab({ userId }: Props) {
                     <div
                       key={ex.id}
                       className="animate-slide-up group"
-                      style={{ padding: '14px 18px', background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(100,116,139,0.2)', borderRadius: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', animationDelay: `${i * 40}ms` }}
+                      style={{ padding: '14px 18px', background: 'rgba(30,41,59,0.5)', border: '1px solid rgba(99,102,241,0.1)', borderRadius: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', animationDelay: `${i * 40}ms` }}
                     >
                       <div>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 700, color: '#0F172A' }}>{ex.name}</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 700, color: '#F1F5F9' }}>{ex.name}</span>
                         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#64748B', marginTop: 2 }}>
                           {ex.sets} × {ex.reps} @ {Number(ex.weight_kg)}kg
                         </div>
@@ -351,7 +351,7 @@ export default function GymTab({ userId }: Props) {
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#475569', margin: 0 }}>Recommended recovery between sets</p>
               </div>
 
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: 56, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.03em', lineHeight: 1 }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 56, fontWeight: 800, color: '#F1F5F9', letterSpacing: '-0.03em', lineHeight: 1 }}>
                 00:{String(timerSecs).padStart(2, '0')}
               </div>
 
@@ -366,9 +366,9 @@ export default function GymTab({ userId }: Props) {
                 </button>
                 <button
                   onClick={() => { setTimerRunning(false); setTimerSecs(60) }}
-                  style={{ padding: 10, borderRadius: '50%', background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(100,116,139,0.45)', cursor: 'pointer', color: '#475569', transition: 'all 0.15s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#EEF2FF' }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.7)' }}
+                  style={{ padding: 10, borderRadius: '50%', background: 'rgba(30,41,59,0.7)', border: '1px solid rgba(148,163,184,0.2)', cursor: 'pointer', color: '#94A3B8', transition: 'all 0.15s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(99,102,241,0.1)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(30,41,59,0.7)' }}
                 >
                   <RotateCcw size={16} />
                 </button>

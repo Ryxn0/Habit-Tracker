@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useMemo } from 'react'
 import { getDaysInMonth } from 'date-fns'
@@ -7,6 +7,7 @@ import { todayISO, toISODate, pct } from '@/lib/utils'
 import type { Habit, Completion } from '@/types'
 import Link from 'next/link'
 import Modal from './Modal'
+import { LampContainer } from '@/components/ui/lamp'
 import {
   ArrowRight, BookOpen, Edit3, Flame, Sparkles, Calendar,
   Trophy, TrendingUp, Zap, Activity,
@@ -53,7 +54,6 @@ export default function OverviewTab({
   const sb    = createClient()
   const allHabits = useMemo(() => [...dailyHabits, ...weeklyHabits], [dailyHabits, weeklyHabits])
 
-  // Load journal from localStorage
   useEffect(() => {
     try {
       const saved = localStorage.getItem('asiryx_journal_entries')
@@ -61,7 +61,6 @@ export default function OverviewTab({
     } catch {}
   }, [])
 
-  // Load Supabase data
   useEffect(() => { if (userId) load() }, [userId, dailyHabits.length])
 
   async function load() {
@@ -88,7 +87,6 @@ export default function OverviewTab({
     setTodaySession((sessRes.data ?? [])[0]?.name ?? null)
   }
 
-  // Streak from heatmap
   const { currentStreak, bestStreak } = useMemo(() => {
     if (!heatmap.length) return { currentStreak: 0, bestStreak: 0 }
     let cur = 0, best = 0, run = 0
@@ -101,7 +99,6 @@ export default function OverviewTab({
     return { currentStreak: cur, bestStreak: best }
   }, [heatmap])
 
-  // Monthly completion rate
   const monthlyRate = useMemo(() => {
     if (!allHabits.length) return 0
     const numDays = getDaysInMonth(new Date(year, month - 1))
@@ -125,7 +122,6 @@ export default function OverviewTab({
   const caloriesRemaining = Math.max(0, calGoal - todayCals)
   const calPct = Math.min(100, Math.round((todayCals / calGoal) * 100))
 
-  // Greeting & date
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning.' : hour < 17 ? 'Good afternoon.' : hour < 22 ? 'Good evening.' : 'Good night.'
   const days   = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -136,9 +132,9 @@ export default function OverviewTab({
   function tabUrl(t: Tab) { return `/dashboard?month=${month}&year=${year}&tab=${t}` }
 
   function heatColor(p: number): string {
-    if (p === 0)   return 'rgba(100,116,139,0.12)'
-    if (p < 0.25)  return '#e0e7ff'
-    if (p < 0.5)   return '#a5b4fc'
+    if (p === 0)   return 'rgba(30,41,59,0.6)'
+    if (p < 0.25)  return 'rgba(99,102,241,0.2)'
+    if (p < 0.5)   return 'rgba(99,102,241,0.45)'
     if (p < 0.75)  return '#6366F1'
     return '#4F46E5'
   }
@@ -155,13 +151,13 @@ export default function OverviewTab({
     setNewText(''); setNewReflection(''); setJournalOpen(false)
   }
 
-  // ── Bento card styles ────────────────────────────────────────────────
+  // ── Dark glass card style ────────────────────────────────────────────────
   const bentoCard: React.CSSProperties = {
     padding: '26px', borderRadius: 22, cursor: 'pointer',
-    background: 'rgba(255, 255, 255, 0.72)',
+    background: 'rgba(15, 23, 42, 0.7)',
     backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-    border: '1px solid rgba(255, 255, 255, 0.9)',
-    boxShadow: '0 4px 24px rgba(149, 67, 47, 0.05), 0 1px 4px rgba(0,0,0,0.04)',
+    border: '1px solid rgba(99, 102, 241, 0.15)',
+    boxShadow: '0 4px 24px rgba(0,0,0,0.25), 0 1px 4px rgba(0,0,0,0.15)',
     position: 'relative', overflow: 'hidden', display: 'block',
     transition: 'transform 0.25s, box-shadow 0.25s',
   }
@@ -169,244 +165,217 @@ export default function OverviewTab({
   function liftCard(e: React.MouseEvent) {
     const el = e.currentTarget as HTMLElement
     el.style.transform = 'translateY(-5px)'
-    el.style.boxShadow = '0 18px 48px rgba(149, 67, 47, 0.12), 0 4px 12px rgba(0,0,0,0.06)'
+    el.style.boxShadow = '0 18px 48px rgba(99,102,241,0.2), 0 4px 12px rgba(0,0,0,0.3)'
   }
   function dropCard(e: React.MouseEvent) {
     const el = e.currentTarget as HTMLElement
     el.style.transform = ''
-    el.style.boxShadow = '0 4px 24px rgba(149, 67, 47, 0.05), 0 1px 4px rgba(0,0,0,0.04)'
+    el.style.boxShadow = '0 4px 24px rgba(0,0,0,0.25), 0 1px 4px rgba(0,0,0,0.15)'
   }
 
   return (
-    <div className="space-y-10 animate-fade-in">
+    <div className="space-y-8 animate-fade-in">
 
-      {/* ── Hero + Bento ─────────────────────────────────────────────── */}
-      <section
-        style={{
-          borderRadius: 28,
-          background: 'linear-gradient(145deg, rgba(248,250,252,0.95) 0%, rgba(241,245,249,0.8) 100%)',
-          border: '1px solid rgba(219, 193, 187, 0.22)',
-          padding: '44px 44px 52px',
-          position: 'relative', overflow: 'hidden',
-          boxShadow: '0 8px 40px rgba(99,102,241,0.06)',
-        }}
-      >
-        {/* Decorative orbs */}
-        <div style={{
-          position: 'absolute', top: -80, right: -80, width: 340, height: 340, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(99,102,241,0.09) 0%, transparent 65%)',
-          pointerEvents: 'none',
-        }} />
-        <div style={{
-          position: 'absolute', bottom: -60, left: '25%', width: 220, height: 220, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(129,140,248,0.06) 0%, transparent 65%)',
-          pointerEvents: 'none',
-        }} />
-
+      {/* ── Lamp hero ────────────────────────────────────────────────────── */}
+      <LampContainer className="rounded-3xl">
         {/* Date badge */}
-        <div style={{ position: 'relative', zIndex: 1, marginBottom: 20 }}>
+        <div style={{ marginBottom: 20, textAlign: 'center' }}>
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
-            background: 'rgba(99,102,241,0.07)', borderRadius: 999,
-            padding: '6px 14px', border: '1px solid rgba(99,102,241,0.14)',
+            background: 'rgba(99,102,241,0.12)', borderRadius: 999,
+            padding: '6px 14px', border: '1px solid rgba(99,102,241,0.22)',
           }}>
             <span style={{
-              width: 6, height: 6, borderRadius: '50%', background: '#6366F1',
+              width: 6, height: 6, borderRadius: '50%', background: '#818CF8',
               display: 'inline-block', animation: 'pulse 2s infinite', flexShrink: 0,
             }} />
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, color: '#6366F1', letterSpacing: '0.1em', fontWeight: 700 }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, color: '#818CF8', letterSpacing: '0.1em', fontWeight: 700 }}>
               {dateStr}
             </span>
           </span>
         </div>
 
         {/* Greeting */}
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: 560 }}>
-          <h1 style={{
-            fontFamily: 'var(--font-display)', fontSize: 'clamp(40px, 5vw, 62px)',
-            fontWeight: 800, color: '#0F172A', lineHeight: 1.05,
-            letterSpacing: '-0.03em', marginBottom: 14,
-          }}>
-            {greeting}
-          </h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: '#475569', lineHeight: 1.65, margin: 0 }}>
-            Here&rsquo;s how today is shaping up. Small actions compound — keep going.
-          </p>
-        </div>
+        <h1 style={{
+          fontFamily: 'var(--font-display)', fontSize: 'clamp(36px, 5vw, 60px)',
+          fontWeight: 800, color: '#F1F5F9', lineHeight: 1.05,
+          letterSpacing: '-0.03em', marginBottom: 16, textAlign: 'center',
+        }}>
+          {greeting}
+        </h1>
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: '#94A3B8', lineHeight: 1.65, margin: 0, textAlign: 'center', maxWidth: 480 }}>
+          Here&rsquo;s how today is shaping up. Small actions compound — keep going.
+        </p>
+      </LampContainer>
 
-        {/* ── Bento cards ── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-12" style={{ position: 'relative', zIndex: 1 }}>
+      {/* ── Bento cards ──────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
 
-          {/* Habits card */}
-          <Link href={tabUrl('habits')} style={{ textDecoration: 'none' }}>
-            <div style={bentoCard} onMouseEnter={liftCard} onMouseLeave={dropCard}>
-              {/* Badge */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-                <span style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 6,
-                  background: 'rgba(99,102,241,0.08)', padding: '5px 11px', borderRadius: 999,
-                  fontFamily: 'var(--font-mono)', fontSize: 9.5, color: '#6366F1', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
-                }}>
-                  <CheckSquareIcon size={10} /> Habits Today
-                </span>
-                <ArrowRight size={14} color="#64748B" />
-              </div>
-
-              {/* Stat + Ring */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 6 }}>
-                    <span style={{ fontFamily: 'var(--font-display)', fontSize: 50, fontWeight: 800, color: '#0F172A', lineHeight: 1 }}>
-                      {dailyDoneToday}
-                    </span>
-                    <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: 'rgba(15,23,42,0.22)', lineHeight: 1 }}>
-                      / {dailyHabits.length}
-                    </span>
-                  </div>
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 12.5, color: '#475569', margin: 0 }}>
-                    {Math.round(dailyHabits.length > 0 ? (dailyDoneToday / dailyHabits.length) * 100 : 0)}% completed today
-                  </p>
-                </div>
-                <MiniRing value={dailyDoneToday} max={dailyHabits.length} color="#6366F1" />
-              </div>
-
-              {/* Subtle corner glow */}
-              <div style={{
-                position: 'absolute', bottom: -24, right: -24, width: 80, height: 80, borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(99,102,241,0.07) 0%, transparent 70%)', pointerEvents: 'none',
-              }} />
+        {/* Habits card */}
+        <Link href={tabUrl('habits')} style={{ textDecoration: 'none' }}>
+          <div style={bentoCard} onMouseEnter={liftCard} onMouseLeave={dropCard}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                background: 'rgba(99,102,241,0.12)', padding: '5px 11px', borderRadius: 999,
+                fontFamily: 'var(--font-mono)', fontSize: 9.5, color: '#818CF8', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
+              }}>
+                <CheckSquareIcon size={10} /> Habits Today
+              </span>
+              <ArrowRight size={14} color="#94A3B8" />
             </div>
-          </Link>
 
-          {/* Calories card */}
-          <Link href={tabUrl('calories')} style={{ textDecoration: 'none' }}>
-            <div style={bentoCard} onMouseEnter={liftCard} onMouseLeave={dropCard}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-                <span style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 6,
-                  background: 'rgba(136,114,109,0.08)', padding: '5px 11px', borderRadius: 999,
-                  fontFamily: 'var(--font-mono)', fontSize: 9.5, color: '#475569', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
-                }}>
-                  <Flame size={10} /> Calories
-                </span>
-                <ArrowRight size={14} color="#64748B" />
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 6 }}>
-                    <span style={{ fontFamily: 'var(--font-display)', fontSize: 50, fontWeight: 800, color: '#0F172A', lineHeight: 1 }}>
-                      {todayCals.toLocaleString()}
-                    </span>
-                    <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: 'rgba(15,23,42,0.22)', lineHeight: 1 }}>
-                      / {calGoal.toLocaleString()}
-                    </span>
-                  </div>
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 12.5, color: '#475569', margin: 0 }}>
-                    {calPct}% of daily goal
-                  </p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 6 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 50, fontWeight: 800, color: '#F1F5F9', lineHeight: 1 }}>
+                    {dailyDoneToday}
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: 'rgba(241,245,249,0.22)', lineHeight: 1 }}>
+                    / {dailyHabits.length}
+                  </span>
                 </div>
-                <MiniRing value={todayCals} max={calGoal} color="#64748B" />
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 12.5, color: '#94A3B8', margin: 0 }}>
+                  {Math.round(dailyHabits.length > 0 ? (dailyDoneToday / dailyHabits.length) * 100 : 0)}% completed today
+                </p>
               </div>
-
-              <div style={{
-                position: 'absolute', bottom: -24, right: -24, width: 80, height: 80, borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(136,114,109,0.06) 0%, transparent 70%)', pointerEvents: 'none',
-              }} />
+              <MiniRing value={dailyDoneToday} max={dailyHabits.length} color="#6366F1" />
             </div>
-          </Link>
 
-          {/* Workout card */}
-          <Link href={tabUrl('gym')} style={{ textDecoration: 'none' }}>
-            <div style={bentoCard} onMouseEnter={liftCard} onMouseLeave={dropCard}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-                <span style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 6,
-                  background: todaySession ? 'rgba(99,102,241,0.08)' : 'rgba(100,116,139,0.25)',
-                  padding: '5px 11px', borderRadius: 999,
-                  fontFamily: 'var(--font-mono)', fontSize: 9.5,
-                  color: todaySession ? '#6366F1' : '#64748B',
-                  fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
-                }}>
-                  <Activity size={10} /> Workout
-                </span>
-                <ArrowRight size={14} color="#64748B" />
-              </div>
+            <div style={{
+              position: 'absolute', bottom: -24, right: -24, width: 80, height: 80, borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)', pointerEvents: 'none',
+            }} />
+          </div>
+        </Link>
 
-              {todaySession ? (
-                <div>
-                  <p style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 700, color: '#0F172A', marginBottom: 6, lineHeight: 1.2 }}>
-                    {todaySession}
-                  </p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#6366F1' }} />
-                    <p style={{ fontFamily: 'var(--font-body)', fontSize: 12.5, color: '#6366F1', margin: 0 }}>
-                      Completed today
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <div style={{ display: 'flex', gap: 5, marginBottom: 10 }}>
-                    {[1, 2, 3, 4].map(i => (
-                      <div key={i} style={{ height: 32, flex: 1, borderRadius: 6, background: 'rgba(100,116,139,0.25)', opacity: 0.4 + i * 0.1 }} />
-                    ))}
-                  </div>
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 12.5, color: '#475569', display: 'flex', alignItems: 'center', gap: 4, margin: 0 }}>
-                    Not logged yet <ArrowRight size={12} />
-                  </p>
-                </div>
-              )}
+        {/* Calories card */}
+        <Link href={tabUrl('calories')} style={{ textDecoration: 'none' }}>
+          <div style={bentoCard} onMouseEnter={liftCard} onMouseLeave={dropCard}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                background: 'rgba(30,41,59,0.5)', padding: '5px 11px', borderRadius: 999,
+                fontFamily: 'var(--font-mono)', fontSize: 9.5, color: '#94A3B8', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
+              }}>
+                <Flame size={10} /> Calories
+              </span>
+              <ArrowRight size={14} color="#94A3B8" />
             </div>
-          </Link>
-        </div>
-      </section>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 6 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 50, fontWeight: 800, color: '#F1F5F9', lineHeight: 1 }}>
+                    {todayCals.toLocaleString()}
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: 'rgba(241,245,249,0.22)', lineHeight: 1 }}>
+                    / {calGoal.toLocaleString()}
+                  </span>
+                </div>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 12.5, color: '#94A3B8', margin: 0 }}>
+                  {calPct}% of daily goal
+                </p>
+              </div>
+              <MiniRing value={todayCals} max={calGoal} color="#94A3B8" />
+            </div>
+
+            <div style={{
+              position: 'absolute', bottom: -24, right: -24, width: 80, height: 80, borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(148,163,184,0.06) 0%, transparent 70%)', pointerEvents: 'none',
+            }} />
+          </div>
+        </Link>
+
+        {/* Workout card */}
+        <Link href={tabUrl('gym')} style={{ textDecoration: 'none' }}>
+          <div style={bentoCard} onMouseEnter={liftCard} onMouseLeave={dropCard}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                background: todaySession ? 'rgba(99,102,241,0.12)' : 'rgba(30,41,59,0.5)',
+                padding: '5px 11px', borderRadius: 999,
+                fontFamily: 'var(--font-mono)', fontSize: 9.5,
+                color: todaySession ? '#818CF8' : '#94A3B8',
+                fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
+              }}>
+                <Activity size={10} /> Workout
+              </span>
+              <ArrowRight size={14} color="#94A3B8" />
+            </div>
+
+            {todaySession ? (
+              <div>
+                <p style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 700, color: '#F1F5F9', marginBottom: 6, lineHeight: 1.2 }}>
+                  {todaySession}
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#6366F1' }} />
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 12.5, color: '#818CF8', margin: 0 }}>
+                    Completed today
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div style={{ display: 'flex', gap: 5, marginBottom: 10 }}>
+                  {[1, 2, 3, 4].map(i => (
+                    <div key={i} style={{ height: 32, flex: 1, borderRadius: 6, background: 'rgba(30,41,59,0.7)', opacity: 0.4 + i * 0.1 }} />
+                  ))}
+                </div>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 12.5, color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 4, margin: 0 }}>
+                  Not logged yet <ArrowRight size={12} />
+                </p>
+              </div>
+            )}
+          </div>
+        </Link>
+      </div>
 
       {/* ── Metric cards ─────────────────────────────────────────────── */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-5">
         {[
           {
             icon: Flame,
-            iconColor: '#6366F1', iconBg: 'rgba(99,102,241,0.08)',
+            iconColor: '#6366F1', iconBg: 'rgba(99,102,241,0.1)',
             label: 'Current Streak', value: `${currentStreak}d`, sub: 'consecutive days',
           },
           {
             icon: Trophy,
-            iconColor: '#818CF8', iconBg: 'rgba(129,140,248,0.08)',
+            iconColor: '#818CF8', iconBg: 'rgba(129,140,248,0.1)',
             label: 'Best Streak', value: `${bestStreak}d`, sub: 'personal record',
           },
           {
             icon: TrendingUp,
-            iconColor: '#64748B', iconBg: 'rgba(136,114,109,0.08)',
+            iconColor: '#94A3B8', iconBg: 'rgba(148,163,184,0.08)',
             label: 'Completion Rate', value: `${monthlyRate}%`, sub: `${allHabits.length} habits tracked`,
           },
           {
             icon: Zap,
-            iconColor: '#475569', iconBg: 'rgba(71,85,105,0.07)',
+            iconColor: '#64748B', iconBg: 'rgba(100,116,139,0.1)',
             label: 'Cals Remaining', value: caloriesRemaining.toLocaleString(), sub: 'kcal until goal',
           },
         ].map(m => (
           <div
             key={m.label}
             style={{
-              background: 'rgba(255, 255, 255, 0.72)',
+              background: 'rgba(15, 23, 42, 0.7)',
               backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
               borderRadius: 20, padding: '22px',
-              border: '1px solid rgba(255, 255, 255, 0.88)',
-              boxShadow: '0 4px 20px rgba(99,102,241,0.04)',
+              border: '1px solid rgba(99, 102, 241, 0.12)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
               transition: 'transform 0.2s, box-shadow 0.2s',
               cursor: 'default',
             }}
             onMouseEnter={e => {
               (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-3px)'
-              ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 12px 36px rgba(99,102,241,0.1)'
+              ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 12px 36px rgba(99,102,241,0.18)'
             }}
             onMouseLeave={e => {
               (e.currentTarget as HTMLDivElement).style.transform = ''
-              ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 20px rgba(99,102,241,0.04)'
+              ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 20px rgba(0,0,0,0.25)'
             }}
           >
-            {/* Icon */}
             <div style={{
               width: 38, height: 38, borderRadius: 11,
               background: m.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -415,12 +384,9 @@ export default function OverviewTab({
               <m.icon size={17} color={m.iconColor} />
             </div>
 
-            {/* Value */}
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 30, fontWeight: 800, color: '#0F172A', lineHeight: 1, marginBottom: 6 }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 30, fontWeight: 800, color: '#F1F5F9', lineHeight: 1, marginBottom: 6 }}>
               {m.value}
             </div>
-
-            {/* Label */}
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#64748B', fontWeight: 700, marginBottom: 3 }}>
               {m.label}
             </div>
@@ -434,11 +400,11 @@ export default function OverviewTab({
       {/* ── Heatmap ───────────────────────────────────────────────────── */}
       <section
         style={{
-          background: 'rgba(255, 255, 255, 0.65)',
+          background: 'rgba(15, 23, 42, 0.7)',
           backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
           borderRadius: 24, padding: '28px 32px',
-          border: '1px solid rgba(255, 255, 255, 0.88)',
-          boxShadow: '0 4px 20px rgba(99,102,241,0.04)',
+          border: '1px solid rgba(99, 102, 241, 0.12)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
@@ -446,11 +412,10 @@ export default function OverviewTab({
             <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '0.15em', color: '#64748B', fontWeight: 700, marginBottom: 4 }}>
               Consistency
             </p>
-            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 800, color: '#0F172A', margin: 0 }}>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 800, color: '#F1F5F9', margin: 0 }}>
               Last 30 days
             </h3>
           </div>
-          {/* Legend */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, color: '#64748B', marginRight: 2 }}>Less</span>
             {[0, 0.2, 0.5, 0.75, 1].map((p, i) => (
@@ -460,9 +425,7 @@ export default function OverviewTab({
           </div>
         </div>
 
-        {/* Heatmap grid — 5 rows of 6 days */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {/* Week rows */}
           {Array.from({ length: 5 }, (_, wk) => (
             <div key={wk} style={{ display: 'flex', gap: 4 }}>
               {Array.from({ length: 6 }, (_, dy) => {
@@ -476,8 +439,7 @@ export default function OverviewTab({
                     style={{
                       width: 22, height: 22, borderRadius: 6,
                       background: heatColor(d.pct), flexShrink: 0,
-                      cursor: 'default',
-                      transition: 'transform 0.15s',
+                      cursor: 'default', transition: 'transform 0.15s',
                     }}
                     onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'scale(1.25)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = 'scale(1)' }}
@@ -488,7 +450,6 @@ export default function OverviewTab({
           ))}
         </div>
 
-        {/* Summary line */}
         <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#64748B', marginTop: 16, margin: '16px 0 0' }}>
           {heatmap.filter(d => d.pct >= 0.8).length} high-performance days in the last 30
         </p>
@@ -496,10 +457,7 @@ export default function OverviewTab({
 
       {/* ── Editorial / Science ───────────────────────────────────────── */}
       <section
-        style={{
-          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40,
-          alignItems: 'center',
-        }}
+        style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'center' }}
         className="grid-cols-1 md:grid-cols-2"
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
@@ -509,13 +467,13 @@ export default function OverviewTab({
             </p>
             <h2 style={{
               fontFamily: 'var(--font-display)', fontSize: 'clamp(28px, 3.5vw, 44px)',
-              fontWeight: 800, color: '#0F172A', lineHeight: 1.1,
+              fontWeight: 800, color: '#F1F5F9', lineHeight: 1.1,
               letterSpacing: '-0.03em', margin: 0,
             }}>
               A Holistic Approach to Data.
             </h2>
           </div>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: '#475569', lineHeight: 1.65, margin: 0 }}>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: '#94A3B8', lineHeight: 1.65, margin: 0 }}>
             Wellness is the synthesis of your movement, your rest, and your nutrition. Asiryx brings these elements together in a calm, focused environment designed for clarity and growth.
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
@@ -546,19 +504,19 @@ export default function OverviewTab({
               onClick={() => setJournalOpen(true)}
               style={{
                 display: 'flex', alignItems: 'center', gap: 8,
-                background: 'transparent', color: '#0F172A',
-                border: '1px solid rgba(100,116,139,0.6)', borderRadius: 999, padding: '13px 26px',
+                background: 'transparent', color: '#CBD5E1',
+                border: '1px solid rgba(148,163,184,0.3)', borderRadius: 999, padding: '13px 26px',
                 fontFamily: 'var(--font-body)', fontSize: 13.5, fontWeight: 600,
                 cursor: 'pointer', transition: 'all 0.2s',
               }}
               onMouseEnter={e => {
                 const el = e.currentTarget as HTMLButtonElement
-                el.style.borderColor = '#6366F1'; el.style.color = '#6366F1'
-                el.style.background = 'rgba(99,102,241,0.04)'
+                el.style.borderColor = '#6366F1'; el.style.color = '#818CF8'
+                el.style.background = 'rgba(99,102,241,0.08)'
               }}
               onMouseLeave={e => {
                 const el = e.currentTarget as HTMLButtonElement
-                el.style.borderColor = 'rgba(100,116,139,0.6)'; el.style.color = '#0F172A'
+                el.style.borderColor = 'rgba(148,163,184,0.3)'; el.style.color = '#CBD5E1'
                 el.style.background = 'transparent'
               }}
             >
@@ -568,7 +526,7 @@ export default function OverviewTab({
           </div>
         </div>
 
-        <div style={{ position: 'relative', height: 360, borderRadius: 24, overflow: 'hidden', border: '1px solid rgba(100,116,139,0.18)', boxShadow: '0 8px 32px rgba(99,102,241,0.07)' }}>
+        <div style={{ position: 'relative', height: 360, borderRadius: 24, overflow: 'hidden', border: '1px solid rgba(99,102,241,0.15)', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}>
           <img
             src="https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=800&q=80"
             alt="Wellness aesthetic"
@@ -577,14 +535,14 @@ export default function OverviewTab({
             onMouseEnter={e => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.05)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1)' }}
           />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(248,250,252,0.18), transparent)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(15,23,42,0.3), transparent)', pointerEvents: 'none' }} />
         </div>
       </section>
 
-      {/* ── Modals ────────────────────────────────────────────────────── */}
+      {/* ── Modals ────────────────────────────────────────────────────────── */}
       <Modal isOpen={scienceOpen} onClose={() => setScienceOpen(false)} title="Science of Kinetic Serenity">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingBottom: 16 }}>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: '#475569', lineHeight: 1.65, margin: 0 }}>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: '#94A3B8', lineHeight: 1.65, margin: 0 }}>
             Kinetic Serenity is a physiological framework based on compounding small mindful efforts. Instead of stressing over rigid fitness regimes, our focus centers on consistency.
           </p>
 
@@ -593,11 +551,11 @@ export default function OverviewTab({
             { icon: <Flame size={15} color="#6366F1" />, title: '2. Non-Adrenaline Movement', body: 'Calibrating physical weights in the Gym tab allows active recovery. Lifting with deliberate speed downregulates serum cortisol levels, promoting heart rate variability (HRV) recovery.' },
             { icon: <Calendar size={15} color="#6366F1" />, title: '3. Nutrition Rhythms', body: 'Logging dietary fuels sequentially stabilizes systemic energy spikes. Remaining slightly below or right at base metabolic benchmarks permits gentle cellular autophagy and mental alertness.' },
           ].map((item, i) => (
-            <div key={i} style={{ padding: '18px 20px', borderRadius: 16, background: 'rgba(241,245,249,0.6)', border: '1px solid rgba(100,116,139,0.2)' }}>
+            <div key={i} style={{ padding: '18px 20px', borderRadius: 16, background: 'rgba(30,41,59,0.5)', border: '1px solid rgba(99,102,241,0.15)' }}>
               <h4 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: '#6366F1', display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 10px' }}>
                 {item.icon} {item.title}
               </h4>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#475569', lineHeight: 1.65, margin: 0 }}>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#94A3B8', lineHeight: 1.65, margin: 0 }}>
                 {item.body}
               </p>
             </div>
@@ -614,14 +572,14 @@ export default function OverviewTab({
               </p>
               <div style={{ maxHeight: 140, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {journalEntries.slice(0, 5).map(entry => (
-                  <div key={entry.id} style={{ padding: '12px 14px', background: 'rgba(248,250,252,0.8)', borderRadius: 12, border: '1px solid rgba(100,116,139,0.15)', fontSize: 12 }}>
+                  <div key={entry.id} style={{ padding: '12px 14px', background: 'rgba(30,41,59,0.6)', borderRadius: 12, border: '1px solid rgba(99,102,241,0.12)', fontSize: 12 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748B', marginBottom: 4 }}>
                       <span style={{ fontFamily: 'var(--font-mono)' }}>{entry.date}</span>
-                      <span style={{ fontFamily: 'var(--font-mono)', background: 'rgba(226,232,240,0.8)', padding: '1px 8px', borderRadius: 999, fontWeight: 700, textTransform: 'capitalize' }}>{entry.mood}</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', background: 'rgba(30,41,59,0.8)', padding: '1px 8px', borderRadius: 999, fontWeight: 700, textTransform: 'capitalize', color: '#94A3B8' }}>{entry.mood}</span>
                     </div>
-                    <p style={{ fontFamily: 'var(--font-body)', fontWeight: 600, color: '#0F172A', margin: '0 0 4px' }}>{entry.text}</p>
+                    <p style={{ fontFamily: 'var(--font-body)', fontWeight: 600, color: '#F1F5F9', margin: '0 0 4px' }}>{entry.text}</p>
                     {entry.reflection && (
-                      <p style={{ fontFamily: 'var(--font-body)', color: '#475569', fontStyle: 'italic', margin: 0, paddingLeft: 8, borderLeft: '2px solid rgba(100,116,139,0.6)' }}>{entry.reflection}</p>
+                      <p style={{ fontFamily: 'var(--font-body)', color: '#94A3B8', fontStyle: 'italic', margin: 0, paddingLeft: 8, borderLeft: '2px solid rgba(99,102,241,0.4)' }}>{entry.reflection}</p>
                     )}
                   </div>
                 ))}
@@ -629,8 +587,8 @@ export default function OverviewTab({
             </div>
           )}
 
-          <form onSubmit={addJournalEntry} style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: journalEntries.length > 0 ? 4 : 0, borderTop: journalEntries.length > 0 ? '1px solid rgba(100,116,139,0.3)' : 'none' }}>
-            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 700, color: '#0F172A', margin: 0 }}>
+          <form onSubmit={addJournalEntry} style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: journalEntries.length > 0 ? 4 : 0, borderTop: journalEntries.length > 0 ? '1px solid rgba(99,102,241,0.2)' : 'none' }}>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 700, color: '#F1F5F9', margin: 0 }}>
               How are you feeling right now?
             </h3>
 
@@ -641,9 +599,9 @@ export default function OverviewTab({
                   style={{
                     padding: '8px 4px', textAlign: 'center', borderRadius: 10,
                     fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 500, textTransform: 'capitalize',
-                    background: newMood === mood ? '#6366F1' : '#F1F5F9',
-                    color: newMood === mood ? '#fff' : '#475569',
-                    border: newMood === mood ? '1px solid #6366F1' : '1px solid transparent',
+                    background: newMood === mood ? '#6366F1' : 'rgba(30,41,59,0.6)',
+                    color: newMood === mood ? '#fff' : '#94A3B8',
+                    border: newMood === mood ? '1px solid #6366F1' : '1px solid rgba(99,102,241,0.12)',
                     cursor: 'pointer', transition: 'all 0.15s',
                   }}
                 >
@@ -653,7 +611,7 @@ export default function OverviewTab({
             </div>
 
             <div>
-              <label style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#475569', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              <label style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#94A3B8', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                 Today&apos;s Focus
               </label>
               <input
@@ -662,12 +620,12 @@ export default function OverviewTab({
                 className="input"
                 style={{ boxSizing: 'border-box' }}
                 onFocus={e => { (e.currentTarget as HTMLInputElement).style.borderColor = '#6366F1' }}
-                onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = 'rgba(100,116,139,0.4)' }}
+                onBlur={e => { (e.currentTarget as HTMLInputElement).style.borderColor = 'rgba(148,163,184,0.2)' }}
               />
             </div>
 
             <div>
-              <label style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#475569', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              <label style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#94A3B8', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                 Gratitude (optional)
               </label>
               <textarea
@@ -676,7 +634,7 @@ export default function OverviewTab({
                 rows={3} className="input"
                 style={{ resize: 'none', boxSizing: 'border-box' }}
                 onFocus={e => { (e.currentTarget as HTMLTextAreaElement).style.borderColor = '#6366F1' }}
-                onBlur={e => { (e.currentTarget as HTMLTextAreaElement).style.borderColor = 'rgba(100,116,139,0.4)' }}
+                onBlur={e => { (e.currentTarget as HTMLTextAreaElement).style.borderColor = 'rgba(148,163,184,0.2)' }}
               />
             </div>
 
@@ -713,7 +671,7 @@ function MiniRing({ value, max, color = '#6366F1', size = 68 }: {
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', display: 'block' }}>
-        <circle cx={cx} cy={cx} r={r} fill="none" stroke="rgba(100,116,139,0.35)" strokeWidth={sw} />
+        <circle cx={cx} cy={cx} r={r} fill="none" stroke="rgba(30,41,59,0.8)" strokeWidth={sw} />
         {fill > 0 && (
           <circle
             cx={cx} cy={cx} r={r} fill="none"
@@ -734,7 +692,7 @@ function MiniRing({ value, max, color = '#6366F1', size = 68 }: {
   )
 }
 
-// ── Inline icon for CheckSquare (avoids import collision) ─────────────────
+// ── Inline icon for CheckSquare ───────────────────────────────────────────
 
 function CheckSquareIcon({ size = 14 }: { size?: number }) {
   return (

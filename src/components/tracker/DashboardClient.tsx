@@ -307,9 +307,9 @@ export default function DashboardClient({ month, year, tab }: Props) {
         className="md:hidden"
         style={{
           position: 'fixed', top: 0, left: 0, right: 0, zIndex: 40, height: 54,
-          background: 'rgba(248,250,252,0.97)',
+          background: 'rgba(15,23,42,0.97)',
           backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(100,116,139,0.22)',
+          borderBottom: '1px solid rgba(99,102,241,0.15)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0 16px',
         }}
@@ -317,9 +317,9 @@ export default function DashboardClient({ month, year, tab }: Props) {
         <Link href="/dashboard" style={{ textDecoration: 'none' }}>
           <span style={{
             fontFamily: 'var(--font-display)', fontSize: 19, fontWeight: 800,
-            color: '#0F172A', letterSpacing: '-0.02em',
+            color: '#F1F5F9', letterSpacing: '-0.02em',
           }}>
-            asiryx<span style={{ color: '#6366F1' }}>.</span>
+            asiryx<span style={{ color: '#818CF8' }}>.</span>
           </span>
         </Link>
         <button
@@ -328,7 +328,7 @@ export default function DashboardClient({ month, year, tab }: Props) {
             width: 36, height: 36, borderRadius: '50%', border: 'none',
             background: mobileOpen ? 'rgba(99,102,241,0.1)' : 'transparent',
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#0F172A', transition: 'all 0.2s',
+            color: '#F1F5F9', transition: 'all 0.2s',
           }}
         >
           {mobileOpen ? <X size={18} /> : <Menu size={18} />}
@@ -404,10 +404,10 @@ export default function DashboardClient({ month, year, tab }: Props) {
               {ready && allHabits.length === 0 ? (
                 <div style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center',
-                  padding: '64px 0', border: '1px dashed rgba(100,116,139,0.5)',
-                  borderRadius: 20, gap: 12, background: 'rgba(255,255,255,0.3)',
+                  padding: '64px 0', border: '1px dashed rgba(99,102,241,0.2)',
+                  borderRadius: 20, gap: 12, background: 'rgba(30,41,59,0.3)',
                 }}>
-                  <p style={{ color: '#64748B', fontSize: 14, margin: 0 }}>
+                  <p style={{ color: '#94A3B8', fontSize: 14, margin: 0 }}>
                     No habits for {monthName(month)} {year}
                   </p>
                   <button
@@ -463,7 +463,7 @@ function ViewHeader({
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
         <h1 style={{
           fontFamily: 'var(--font-display)', fontSize: 40, fontWeight: 800,
-          color: '#0F172A', lineHeight: 1, margin: 0, letterSpacing: '-0.02em',
+          color: '#F1F5F9', lineHeight: 1, margin: 0, letterSpacing: '-0.02em',
         }}>
           {title}
         </h1>
@@ -482,7 +482,7 @@ function LoadingSkeleton() {
     <div style={{
       minHeight: '100vh', display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center', gap: 10,
-      background: '#F8FAFC',
+      background: '#0F172A',
     }}>
       <div style={{
         width: 32, height: 32, borderRadius: '50%',
